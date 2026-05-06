@@ -1,96 +1,1172 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mark Wang</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial;
-            background: #ffffff;
-            color: #111;
-            display: flex;
-            justify-content: center;
-            padding: 60px 20px;
-            animation: fadeIn 1.2s ease;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shipping Marks OS V1.7.5</title>
+<!-- Excel 处理库 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Tesseract.js OCR 视觉识别引擎 -->
+<script src="https://unpkg.com/tesseract.js@v4.1.4/dist/tesseract.min.js"></script>
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800;900&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap');
 
-        .container {
-            max-width: 720px;
-            text-align: center;
-        }
+  :root {
+    --bg: #f5f5f7; --panel-bg: rgba(255, 255, 255, 0.7); --border: rgba(0, 0, 0, 0.08); 
+    --border-hover: rgba(0, 0, 0, 0.25); --accent: #111111; --text: #1d1d1f; --text-muted: #86868b;
+    --danger: #ff3b30; --danger-light: rgba(255,59,48,0.1); --warning: #ff9500; --warning-light: rgba(255,149,0,0.1); --success: #34c759;
+    --sidebar-width: 240px; --sidebar-collapsed-width: 68px;
+    --radius-outer: 16px; --radius-inner: 12px; --radius-elem: 8px;
+    --shadow-soft: 0 4px 12px -4px rgba(0, 0, 0, 0.04), 0 16px 32px -8px rgba(0, 0, 0, 0.04);
+    --shadow-float: 0 20px 40px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03);
+    --input-bg: rgba(255, 255, 255, 0.8); --mark-preview-bg: #ebecf0;
+    --step1-color: #5856d6; --step2-color: #007aff; --step3-color: #34aadc; --step4-color: #ff9500; --step5-color: #34c759;
+  }
 
-        h1 {
-            font-size: 42px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
-        }
+  [data-theme="dark"] {
+    --bg: #000000; --panel-bg: rgba(28, 28, 30, 0.85); --border: rgba(255, 255, 255, 0.12); --border-hover: rgba(255, 255, 255, 0.3);
+    --accent: #ffffff; --text: #f5f5f7; --text-muted: #86868b;
+    --danger: #ff453a; --danger-light: rgba(255,69,58,0.15); --warning: #ffb340; --warning-light: rgba(255,179,64,0.15);
+    --shadow-soft: 0 4px 20px rgba(0,0,0,0.4); --shadow-float: 0 30px 60px rgba(0,0,0,0.6), 0 1px 3px rgba(0,0,0,0.4);
+    --input-bg: rgba(44, 44, 46, 0.6); --mark-preview-bg: #121212;
+  }
 
-        .subtitle {
-            font-size: 20px;
-            color: #555;
-            font-weight: 400;
-            margin-bottom: 30px;
-        }
+  * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+  body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 20px; transition: background-color 0.3s, color 0.3s; }
+  .font-mono { font-family: 'JetBrains Mono', Consolas, Monaco, monospace; }
+  button { font-family: inherit; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  button:active { transform: scale(0.97) !important; }
 
-        .tagline {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 40px;
-        }
+  /* Sidebar */
+  .app-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-width); background: var(--panel-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-right: 1px solid var(--border); z-index: 1000; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow: hidden; }
+  .app-sidebar.collapsed { width: var(--sidebar-collapsed-width); }
+  .sidebar-header { height: 70px; padding: 0 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); white-space: nowrap; flex-shrink: 0; }
+  .sidebar-toggle { background: none; border: none; font-size: 20px; color: var(--text); display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; }
+  .sidebar-toggle:hover { background: rgba(128,128,128,0.1); }
+  .sidebar-title { font-weight: 900; font-size: 15px; font-family: 'JetBrains Mono'; transition: opacity 0.2s; letter-spacing: 0.5px;}
+  .app-sidebar.collapsed .sidebar-title { opacity: 0; pointer-events: none; }
+  .sidebar-nav { flex: 1; padding: 24px 10px; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; overflow-x: hidden;}
+  .nav-group-title { font-size: 10px; font-weight: 800; color: var(--text-muted); padding: 10px 14px 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .app-sidebar.collapsed .nav-group-title { display: none; }
+  .nav-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 10px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; font-weight: 700; font-size: 13px; }
+  .nav-item:hover { background: rgba(128,128,128,0.08); color: var(--text); }
+  .nav-item.active { background: var(--accent); color: var(--bg); box-shadow: 0 4px 12px rgba(0,0,0,0.1);}
+  .nav-item.active .nav-icon { color: var(--bg); }
+  .nav-icon { font-size: 18px; width: 20px; text-align: center; flex-shrink: 0;}
+  .app-sidebar.collapsed .nav-text { opacity: 0; pointer-events: none; }
 
-        .divider {
-            width: 60px;
-            height: 1px;
-            background: #ddd;
-            margin: 40px auto;
-        }
+  /* Main Area */
+  .main-wrapper { margin-left: var(--sidebar-width); transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); min-height: 100vh; display: flex; flex-direction: column; }
+  body.sidebar-collapsed .main-wrapper { margin-left: var(--sidebar-collapsed-width); }
+  .app-page { display: none; padding: 0; max-width: 1560px; margin: 32px auto 0; width: 100%; padding: 0 32px;}
+  .app-page.active { display: block; }
+  .marks-layout { display: grid; grid-template-columns: 620px 1fr; gap: 24px; align-items: start; }
 
-        .links a {
-            margin: 0 12px;
-            font-size: 17px;
-            color: #0071e3;
-            text-decoration: none;
-        }
+  header { background: var(--panel-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); box-shadow: 0 1px 10px rgba(0,0,0,0.02);}
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 18px; font-weight: 800; letter-spacing: 0.5px; margin-right: 16px; transition: all 0.3s ease;}
+  .header-controls { display: flex; align-items: center; gap: 12px; }
+  .global-stats { padding: 6px 16px; background: rgba(128,128,128,0.06); border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono'; color: var(--text); display: flex; align-items: center; gap: 14px; opacity: 0; transform: translateY(-5px); transition: all 0.3s ease; pointer-events: none; }
+  .global-stats.active { opacity: 1; transform: translateY(0); }
+  .global-stats-item { display: flex; align-items: center; gap: 6px; }
+  .global-stats-item span.lbl { color: var(--text-muted); font-size: 11px; font-family: 'Noto Sans SC', sans-serif; }
+  .stat-divider { width: 1px; height: 14px; background: var(--border); }
+  .header-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease; }
+  .header-btn:hover { border-color: var(--accent); background: rgba(128,128,128,0.05); }
+  .btn-print-top { font-weight: 700; color: var(--text); }
+  .btn-print-top:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
 
-        .links a:hover {
-            text-decoration: underline;
-        }
+  .preview-panel { position: sticky; top: 85px; height: calc(100vh - 105px); display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-outer); background: var(--panel-bg); overflow: hidden; }
+  @media (max-width: 1100px) { .marks-layout { grid-template-columns: 1fr; } .preview-panel { order: -1; position: relative; top: 0; height: auto; min-height: 500px; display: block; overflow-y: visible; } .global-stats { display: none !important; } .marks-grid-wrapper { overflow-y: visible !important; } }
 
-        .footer {
-            margin-top: 50px;
-            font-size: 14px;
-            color: #aaa;
-        }
-    </style>
+  .card { background: var(--panel-bg); backdrop-filter: blur(24px); border: 1px solid var(--border); border-radius: var(--radius-outer); box-shadow: var(--shadow-soft); margin-bottom: 20px; transition: all 0.3s; }
+  .card-step1 { border-top: 2px solid var(--step1-color); }
+  .card-step2 { border-top: 2px solid var(--step2-color); }
+  .card-step3 { border-top: 2px solid var(--step3-color); }
+  .card-step4 { border-top: 2px solid var(--step4-color); }
+  .card-step5 { border-top: 2px solid var(--step5-color); }
+  .card-header { background: rgba(128,128,128,0.02); border-bottom: 1px solid var(--border); padding: 14px 20px 14px 16px; font-size: 12px; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 8px; border-radius: var(--radius-outer) var(--radius-outer) 0 0; }
+  .card-body { padding: 20px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .field-row:last-child { margin-bottom: 0; }
+  .field-row.three-cols { grid-template-columns: 1fr 1fr 1fr; margin-bottom: 16px; }
+  label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select, textarea { width: 100%; padding: 10px 12px; min-height: 40px; border: 1px solid var(--border); border-radius: var(--radius-elem); font-size: 13px; background: var(--input-bg); color: var(--text); transition: all 0.2s ease; }
+  input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.1); }
+  .input-warning { border-color: var(--danger) !important; box-shadow: 0 0 0 3px var(--danger-light) !important; background: rgba(255,59,48,0.02) !important; }
+  
+  .view-ctrl { background: rgba(128,128,128,0.05); padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .view-ctrl select { padding: 6px 10px; min-height: 32px; border-radius: 6px; width: auto; font-weight: 700; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: var(--bg); color: var(--text);}
+  .view-ctrl label { display: flex; align-items: center; margin-bottom: 0; text-transform: none; font-size: 12px; gap: 6px; cursor: pointer; color: var(--text); font-weight: 600;}
+  .view-ctrl input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); margin:0;}
+
+  /* Pallets */
+  .pallet-list { display: flex; flex-direction: column; gap: 12px; }
+  .pallet-item { border: 1px solid var(--border); border-radius: var(--radius-inner); background: rgba(128,128,128,0.015); transition: all 0.2s; overflow: hidden; }
+  .pallet-item:hover { border-color: var(--border-hover); }
+  .pallet-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 600; cursor: pointer; user-select: none; border-bottom: 1px solid transparent; }
+  .pallet-item.open .pallet-header { border-bottom-color: var(--border); background: rgba(128,128,128,0.04); }
+  .red-dot-radar { display: inline-block; width: 8px; height: 8px; background-color: var(--danger); border-radius: 50%; margin-right: 8px; box-shadow: 0 0 0 0 rgba(255,59,48,0.4); animation: pulse-red 2s infinite; }
+  @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255,59,48,0.4); } 70% { box-shadow: 0 0 0 6px rgba(255,59,48,0); } 100% { box-shadow: 0 0 0 0 rgba(255,59,48,0); } }
+  .pallet-badge { background: var(--accent); color: var(--bg); padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono'; }
+  .pallet-summary { font-size: 12px; color: var(--accent); font-weight: 600; margin-left: 10px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;}
+  .pallet-body { max-height: 0; opacity: 0; padding: 0 16px; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease; }
+  .pallet-item.open .pallet-body { max-height: 2500px; opacity: 1; padding: 16px; }
+
+  .product-row-wrapper { border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; background: var(--input-bg); transition: all 0.2s; position: relative; }
+  .product-row-wrapper:hover { border-color: var(--border-hover); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .row-title { font-size: 10px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.5px;}
+  .product-row-line1 { display: grid; grid-template-columns: 2fr auto 2fr auto 2fr 3fr; gap: 8px; margin-bottom: 12px; align-items: center; }
+  .product-row-line2 { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: center; }
+  .product-row-wrapper input { min-height: 36px; padding: 8px 10px; font-weight: 600;}
+  .product-row-wrapper .sep { text-align: center; font-size: 12px; color: var(--text-muted); font-weight: 800; padding: 0; }
+  .total-pcs-cell { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 900; color: var(--text); text-align: right; padding: 8px 12px; background: rgba(128,128,128,0.06); border-radius: 6px; display: flex; align-items: center; justify-content: flex-end; }
+
+  .btn-icon { background: rgba(128,128,128,0.1); border: 1px solid var(--border); color: var(--text); font-size: 13px; border-radius: 6px; padding: 6px 10px; }
+  .btn-icon:hover { background: rgba(128,128,128,0.15); border-color: var(--border-hover); transform: none !important;}
+  .btn-remove-pallet { background: var(--danger-light); border: 1px solid rgba(255,59,48,0.2); color: var(--danger); border-radius: 6px; padding: 4px 8px; font-size: 13px; font-weight: 700; }
+  
+  .btn-remove { background: var(--danger-light); border: 1px solid rgba(255,59,48,0.2); color: var(--danger); border-radius: 6px; padding: 0 16px; font-size: 12px; height: 36px; font-weight: 700; transition: 0.2s;}
+  .btn-remove:hover { background: var(--danger); color: white; }
+
+  .btn-add-product { width: 100%; padding: 10px; background: none; border: 1px dashed var(--border); border-radius: var(--radius-elem); color: var(--text-muted); font-size: 12px; font-weight: 600; margin-top: 4px; }
+  .btn-add-product:hover { border-color: var(--accent); color: var(--accent); background: rgba(128,128,128,0.05); }
+  .btn-add-pallet { width: 100%; padding: 12px; background: transparent; border: 1px solid var(--accent); border-radius: var(--radius-inner); color: var(--accent); font-size: 13px; font-weight: 700; }
+  .btn-add-pallet:hover { background: var(--accent); color: var(--bg); }
+  
+  .stat-block { background: rgba(128,128,128,0.05); border: 1px solid var(--border); border-radius: var(--radius-inner); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stat-value { font-size: 22px; font-weight: 900; line-height: 1; font-family: 'JetBrains Mono'; transition: color 0.3s; }
+  .stat-value.boxes { color: var(--warning); }
+  .stat-value.pcs { color: var(--accent); }
+  .stat-value.sqm { color: var(--step2-color); }
+  
+  .stat-note { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); line-height: 1.7; }
+  
+  .drop-zone { width: 100%; padding: 16px; background: rgba(128,128,128,0.04); border: 2px dashed rgba(0,122,255,0.3); border-radius: var(--radius-inner); transition: all 0.2s ease; display: flex; flex-direction: column; text-align: left; }
+  .drop-zone:hover, .drop-zone.dragover { background: rgba(0,122,255,0.06); border-color: var(--step2-color); }
+  
+  .sync-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; transition: all 0.3s ease; border: 1px solid transparent;}
+  .sync-badge.synced { background: rgba(52,199,89,0.1); border-color: rgba(52,199,89,0.3); color: var(--success); }
+  .sync-badge.synced .sync-dot { background: var(--success); }
+  .sync-badge:not(.synced) { background: rgba(255,149,0,0.1); border-color: rgba(255,149,0,0.3); color: var(--warning); }
+  .sync-badge:not(.synced) .sync-dot { background: var(--warning); animation: pulse-warning 1s infinite; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; }
+  @keyframes pulse-warning { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+  .preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; background: transparent; padding: 12px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .preview-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .zoom-control { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+  .zoom-control input[type=range] { width: 80px; accent-color: var(--accent); cursor: pointer; }
+  .btn-zoom { background: transparent; border: none; font-size: 16px; color: var(--text-muted); cursor: pointer; padding: 6px 12px; font-weight: bold; border-radius: 6px;}
+  .btn-zoom:hover { color: var(--accent); background: rgba(128,128,128,0.1); }
+  
+  .page-nav-btn { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--text); }
+  .page-nav-btn:hover { background: rgba(128,128,128,0.1); border-color: var(--accent); }
+
+  /* Tool Pages */
+  .tool-container { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  @media (min-width: 900px) { .tool-container { grid-template-columns: 1fr 1fr; } }
+  .tool-result-box { background: rgba(128,128,128,0.04); border-radius: var(--radius-inner); padding: 24px; border: 1px dashed var(--border); min-height: 300px; }
+  .tool-btn-primary { background: var(--accent); color: var(--bg); padding: 12px 24px; border-radius: 12px; font-weight: 700; width: 100%; margin-top: 10px; border: none; font-size: 14px; transition: 0.2s;}
+  .tool-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .tool-btn-secondary { width: 100%; margin-top: 10px; background: none; border: 1px solid var(--border); padding: 10px; border-radius: 12px; font-weight: 700; color: var(--text); transition: 0.2s;}
+  .tool-btn-secondary:hover { background: rgba(128,128,128,0.05); border-color: var(--accent); }
+  .tool-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; box-shadow: none !important;}
+
+  .table-scroll-wrap { max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; background: var(--bg); }
+  .table-scroll-wrap th { position: sticky; top: 0; background: var(--panel-bg); backdrop-filter: blur(10px); z-index: 10; border-top: none !important; }
+
+  /* Print Preview & Marks */
+  @media screen {
+    .marks-grid-wrapper { flex: 1; overflow-y: auto; overflow-x: hidden; background: var(--mark-preview-bg); padding: 24px; display: flex; justify-content: center; position: relative; }
+    [data-theme="dark"] .marks-grid-wrapper { background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 0%, transparent 70%); }
+    .marks-grid { display: flex; flex-direction: column; align-items: center; gap: 24px; transform-origin: top center; transition: transform 0.2s ease; background: transparent;}
+    .mark-card { box-shadow: var(--shadow-float); border-radius: 6px; border-bottom: none !important;}
+  }
+
+  .mark-card { background: white; width: 210mm; height: 148.5mm; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; margin: 0; padding: 0; overflow: hidden; color: black; position: relative; }
+  .mark-inner { width: 196mm; height: 138mm; display: flex; flex-direction: column; border: none; box-sizing: border-box; overflow: hidden; background: #fff; padding: 3mm 6mm; }
+  .mark-top { display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 2px solid #000; padding-bottom: 1.5mm; margin-bottom: 1.5mm; position: relative; min-height: 16mm; }
+  .mark-logo-area { width: 100%; display: flex; justify-content: flex-start; overflow: hidden; padding-right: 52mm; padding-left: 0; box-sizing: border-box;}
+  .mark-logo { font-family: 'Arial Black', 'Helvetica Neue', Helvetica, sans-serif; font-weight: 900; color: #000; line-height: 0.9; text-transform: uppercase; letter-spacing: -1px; text-align: left; white-space: nowrap; overflow: hidden; }
+  .mark-pallet-badge { position: absolute; top: -2mm; right: 0; background: #000; color: #fff; padding: 1.5mm 3mm; display: flex; align-items: baseline; gap: 1.5mm; }
+  .pallet-badge-label { font-size: 3.5mm; font-weight: 700; text-transform: uppercase; }
+  .pallet-badge-number { font-size: 9mm; font-weight: 900; font-family: 'JetBrains Mono'; line-height: 1; }
+  .page-tag-print { font-size: 3.2mm; font-weight: 800; margin-left: 1mm; border-left: 1px solid rgba(255,255,255,0.4); padding-left: 2mm; }
+  .mark-po { font-size: 5mm; font-weight: 800; color: #000; font-family: 'JetBrains Mono'; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5mm; }
+  .mark-origin { display: flex; justify-content: space-between; align-items: center; font-weight: 900; color: #000; margin-bottom: 1.5mm; text-transform: uppercase; border-bottom: none; padding-bottom: 0;}
+  .dest-wrapper { display: flex; align-items: center; gap: 2mm; }
+  .dest-label { font-size: 3.5mm; font-weight: 700; color: #555; }
+  .dest-value { font-size: 6mm; font-weight: 900; color: #000; }
+  .mark-table-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; margin-top: 0; }
+  .mark-table { width: 100%; border-collapse: collapse; }
+  .mark-table th { background: transparent; color: #000; font-size: 3.5mm; font-weight: 800; padding: 1.5mm 1mm; border-top: 2px solid #000; border-bottom: 2px solid #000; border-left: none; border-right: none; text-align: left; }
+  .mark-table th:nth-child(n+3) { text-align: right; } 
+  .mark-table td { font-size: 18pt; font-family: 'JetBrains Mono'; font-weight: 600; padding: 2mm 1mm; border-bottom: 1px solid rgba(0,0,0,0.15); border-left: none; border-right: none; color: #000; text-align: left;}
+  .mark-table td:nth-child(n+3) { text-align: right; } 
+  .mark-table tr:last-child td { border-bottom: none; }
+
+  /* 🌟🌟🌟 V1.7.5 打印环境：九族清零，彻底抹除边距陷阱 🌟🌟🌟 */
+  @media print {
+    @page { size: A4 portrait; margin: 0 !important; padding: 0 !important; }
+    
+    /* 1. 强制隐藏所有不必要的 UI 元素 */
+    header, .left-panel, .preview-header, .view-ctrl, .btn-back-to-top, .toast-container, .app-footer, .app-sidebar { display: none !important; }
+    
+    /* 2. 最关键的一步：剥夺所有父级容器默认的 margin、padding 和最小高度 */
+    html, body, [data-theme="dark"], .main-wrapper, .app-page, .marks-layout, .preview-panel, .marks-grid-wrapper, .marks-grid {
+        background: white !important; 
+        color: black !important; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        border: none !important; 
+        box-shadow: none !important; 
+        min-height: 0 !important; 
+        height: auto !important; 
+        max-width: 100% !important; 
+        width: 100% !important; 
+        position: static !important; 
+        display: block !important; 
+        float: none !important; 
+        gap: 0 !important;
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important;
+    }
+    
+    /* 3. 卡片绝对尺寸控制：高度缩减至 145mm，为 A4 预留 7mm 的打白边容错 */
+    .mark-card { 
+        width: 210mm !important; 
+        height: 145mm !important; 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        border: none !important; 
+        outline: none !important; 
+        box-shadow: none !important; 
+        background: transparent !important; 
+        display: flex !important; 
+        align-items: center !important; 
+        justify-content: center !important; 
+        break-inside: avoid !important; 
+        page-break-inside: avoid !important; 
+        overflow: hidden !important; 
+        box-sizing: border-box !important; 
+    }
+    
+    /* 4. 强制偶数断页：雷打不动的 1 页 2 张 */
+    .mark-card:nth-child(2n) { page-break-after: always !important; break-after: page !important;}
+    .mark-card:last-child { page-break-after: auto !important; break-after: auto !important;}
+    
+    body.print-filtered .mark-card:not(.print-target) { display: none !important; }
+    
+    /* 5. 内部画板同步收缩，预留绝对安全的无打印盲区 */
+    .mark-inner { width: 196mm !important; height: 136mm !important; border: none !important; background: #fff !important; display: flex !important; flex-direction: column !important; box-sizing: border-box !important; overflow: hidden !important; }
+    .mark-top, .mark-po, .mark-origin, .mark-footer { border-color: #000 !important; }
+    .mark-pallet-badge { background: #000 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pallet-badge-label, .pallet-badge-number, .page-tag-print { color: #fff !important; }
+    .mark-logo, .mark-origin, .mark-table th, .mark-table td, .dest-label, .dest-value { color: #000 !important; }
+  }
+
+  .toast-container { position: fixed; top: 24px; right: 32px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+  .toast { padding: 14px 20px; border-radius: var(--radius-elem); font-size: 13px; font-weight: 600; color: white; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transform: translateX(120%); opacity: 0; transition: all 0.4s ease; pointer-events: auto; max-width: 350px; line-height: 1.4; backdrop-filter: blur(10px); }
+  .toast.show { transform: translateX(0); opacity: 1; }
+  .toast.error { background: rgba(255, 59, 48, 0.9); border-left: 4px solid #ff3b30; }
+  .toast.success { background: rgba(52, 199, 89, 0.9); border-left: 4px solid #34c759; }
+  .toast.warning { background: rgba(255, 149, 0, 0.9); border-left: 4px solid var(--warning); }
+  .btn-back-to-top { position: fixed; bottom: 40px; right: 40px; padding: 12px 18px; background: var(--accent); color: var(--bg); border: none; border-radius: 50px; font-size: 14px; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,0.2); cursor: pointer; opacity: 0; transform: translateY(20px); pointer-events: none; transition: all 0.4s ease; z-index: 1000; }
+  .btn-back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  
+  .app-footer { text-align: center; padding: 30px 0 20px; font-size: 12px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; opacity: 0.7;}
+</style>
 </head>
-<body>
-    <div class="container">
+<body class="print-2-per-page">
 
-        <h1>Mark Wang</h1>
-        <div class="subtitle">Sales Manager · Huangshan Jinruitai Technology Co., Ltd.</div>
+<aside class="app-sidebar" id="appSidebar">
+  <div class="sidebar-header">
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="折叠/展开菜单">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+    </button>
+    <span class="sidebar-title">LOGISTICS OS</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-title">Main</div>
+    <div class="nav-item active" onclick="switchPage('pageMarks', this, '📦 唛头生成工作台')">
+      <span class="nav-icon">📦</span><span class="nav-text">唛头生成工作台</span>
+    </div>
+    <div class="nav-group-title">Document Tools</div>
+    <div class="nav-item" onclick="switchPage('pageDehydrate', this, '🔍 PO 订单脱水助手')">
+      <span class="nav-icon">🔍</span><span class="nav-text">PO 订单脱水助手</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('pageDate', this, '📅 日期时间计算器')">
+      <span class="nav-icon">📅</span><span class="nav-text">日期时间计算</span>
+    </div>
+    <div class="nav-item" onclick="switchPage('pageAmount', this, '✍️ 英文金额大写转换')">
+      <span class="nav-icon">✍️</span><span class="nav-text">金额大写转换</span>
+    </div>
+  </nav>
+</aside>
 
-        <div class="divider"></div>
+<div class="main-wrapper">
+  <header>
+    <div class="header-left">
+      <h1 id="pageTitle">📦 唛头生成工作台</h1>
+      <div id="globalStats" class="global-stats">
+        <div class="global-stats-item"><span class="lbl">BOXES:</span> <span id="g-boxes">0</span></div><div class="stat-divider"></div>
+        <div class="global-stats-item"><span class="lbl">PCS:</span> <span id="g-pcs">0</span></div><div class="stat-divider"></div>
+        <div class="global-stats-item"><span class="lbl">SQM:</span> <span id="g-sqm">0.00</span></div>
+      </div>
+    </div>
+    <div class="header-controls">
+      <button class="header-btn theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓 深色模式</button>
+      <button class="header-btn btn-print-top" id="btnPrintTop" onclick="validateAndPrint()">🖨 批量打印</button>
+    </div>
+  </header>
 
-        <div class="tagline">Premium Offset Printing Plates Manufacturer</div>
+  <div id="toastContainer" class="toast-container"></div>
 
-        <div class="divider"></div>
+  <!-- 页面 1：唛头生成工作台 (回归单页集成的神级效率架构) -->
+  <main id="pageMarks" class="app-page active">
+    <div class="marks-layout">
+      <div class="left-panel">
 
-        <div class="links">
-            <a href="mailto:wangxin@greatech.cc">Email</a>
-            <a href="https://www.greatech.cc" target="_blank">Website</a>
-            <a href="https://wa.me/8618855900914" target="_blank">WhatsApp</a>
+        <div class="card card-step1">
+          <div class="card-header" style="justify-content: space-between; cursor: pointer;" onclick="toggleMappingPanel()">
+            <span>⚙️ 步骤 1：英文品名 PRODUCT DESCRIPTION</span>
+            <span style="font-size:10px; color:var(--step1-color);" id="mappingToggleText">点击展开设置 ▼</span>
+          </div>
+          <div class="card-body" id="mappingBody" style="display: none; padding-top: 10px;">
+            <div class="stat-note" style="margin-top:0; margin-bottom:12px; border-top:none; padding-top:0;">用于将排产图纸上的原厂代号，自动转换为报关和唛头上显示的英文品名。（修改后自动保存）</div>
+            <div id="mappingList"></div>
+            <button class="btn-add-product" onclick="addMapping()" style="margin-top: 8px;">＋ 增加品名映射规则</button>
+          </div>
         </div>
 
-        <div class="footer">© 2026 Mark Wang</div>
+        <div class="card card-step2">
+          <div class="card-header">📥 步骤 2：数据导入 DATA IMPORT</div>
+          <div class="card-body">
+            <div id="dropZone" class="drop-zone">
+              <textarea id="pasteInput" rows="7" class="font-mono" style="border: 1px dashed var(--border); background: var(--input-bg); color: var(--text); resize: vertical; margin-bottom: 12px; width: 100%; padding: 12px; border-radius: var(--radius-elem);" placeholder="📋 垂直锚点解析引擎就绪：&#10;👉 支持任意格式的流程单拖入，系统自动锁定包装片数。&#10;👉 随后拖拽打托明细表，系统将智能合并，覆盖特殊包装要求。"></textarea>
+              <div style="display:flex; justify-content: flex-end; align-items: center;">
+                <button class="btn-icon" onclick="document.getElementById('importFile').click()" style="padding: 6px 12px; font-size:12px; border: 1px solid var(--border);">📂 上传 Excel 文件</button>
+              </div>
+              <input type="file" id="importFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleFileUpload(event)">
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-step3">
+          <div class="card-header" style="justify-content: space-between; cursor: pointer;" onclick="toggleBasicInfoPanel()">
+            <span>⚙️ 步骤 3：基础信息 BASIC INFO.</span>
+            <span style="font-size:10px; color:var(--step3-color);" id="basicInfoToggleText">点击收起 ▲</span>
+          </div>
+          <div class="card-body" id="basicInfoBody" style="display: block;">
+            <div class="field-row">
+              <div><label>客户代码 / Customer</label><input type="text" id="customer" class="font-mono" placeholder="选填" oninput="triggerSave()"></div>
+              <div><label>目的地 / Destination <span style="color:var(--danger)">*</span></label><input type="text" id="destination" class="font-mono" placeholder="国家/地区名称 (必填)" oninput="triggerSave()"></div>
+            </div>
+            <div class="field-row">
+              <div><label>订单号 / PO NO.</label><input type="text" id="poNo" class="font-mono" placeholder="客户订单号/发票号" oninput="triggerSave()"></div>
+              <div><label>流程单号 / FACTORY NO.</label><input type="text" id="workOrderNo" class="font-mono" placeholder="建议填写" oninput="triggerSave()"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-step4" id="statsCard">
+          <div class="card-header">📊 步骤 4：数据汇总 STATISTICS</div>
+          <div class="card-body" style="padding: 16px 20px;">
+            <div class="field-row three-cols">
+              <div><div class="stat-block"><label style="margin-bottom:6px;">总盒数 (BOXES)</label><div class="stat-value boxes" id="statBoxes">0</div></div></div>
+              <div><div class="stat-block"><label style="margin-bottom:6px;">总张数 (PCS)</label><div class="stat-value pcs" id="statPcs">0</div></div></div>
+              <div><div class="stat-block"><label style="margin-bottom:6px;">总平米 (SQM)</label><div class="stat-value sqm" id="statSqm">0.00</div></div></div>
+            </div>
+            
+            <div id="reconAlert" style="display:none; flex-direction:column; align-items:flex-start; border-radius:8px; padding:12px; margin-top:14px; font-size:12px; font-weight:600; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                    <div id="reconContent" style="display:flex; align-items:center; gap:6px;"></div>
+                    <button onclick="clearTargetData()" style="background:none; border:none; color:inherit; font-size:11px; opacity:0.7; cursor:pointer; text-decoration:underline;">✕ 清除目标</button>
+                </div>
+            </div>
+
+            <div class="stat-note">
+              - 智能识别：超大版30张，大版40张，小版100张，常规50张。<br>
+              - 流程核对：宏观总张数与总平米对账，并自动提取特殊包装片数进行覆盖。
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-step5">
+          <div class="card-header" style="justify-content: space-between;">
+            <span>🏗 步骤 5：装箱清单 PALLETS DETAILS</span>
+            <button class="btn-remove" style="border:none;background:none;color:var(--text);font-weight:700; opacity: 1; padding:0; height:auto;" onclick="clearAllPallets()">清空</button>
+          </div>
+          <div class="card-body">
+            <div id="palletList" class="pallet-list"></div>
+            <button class="btn-add-pallet" onclick="addPallet()" style="margin-top:16px;">＋ 添加托盘 ADD PALLET</button>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="preview-panel">
+        <div class="view-ctrl">
+           <select id="tplSelect" onchange="generateMarks()">
+              <option value="bloomberg">模板 1：彭博社横排版 (标准)</option>
+              <option value="minimal">模板 2：极简大字版 (无脚注)</option>
+              <option value="boxed">模板 3：全边框网格版 (防漏看)</option>
+              <option value="modern">模板 4：现代粗黑版 (高对比)</option>
+           </select>
+           <label><input type="checkbox" id="chkWeight" onchange="generateMarks()"> 显示毛净重</label>
+           <label><input type="checkbox" id="chkPO" checked onchange="generateMarks()"> 显示订单号</label>
+           <label><input type="checkbox" id="chkTotal" checked onchange="generateMarks()"> 显示合计</label>
+           <span class="sync-badge" id="saveStatus" style="margin-left:auto"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
+        </div>
+
+        <div class="preview-header">
+          <div class="preview-title">
+            👁️ 渲染预览
+            <div style="display:flex;align-items:center;gap:12px;margin-left:16px;">
+               <button class="page-nav-btn" onclick="prevPage()">◀</button>
+               <span id="pageIndicator" class="font-mono" style="font-size:14px;font-weight:900;min-width:60px;text-align:center;color:var(--accent);">0 / 0</span>
+               <button class="page-nav-btn" onclick="nextPage()">▶</button>
+            </div>
+          </div>
+          <div class="zoom-control">
+            <button class="btn-zoom" onclick="adjustZoom(-0.1)">-</button>
+            <input type="range" id="zoomSlider" min="0.3" max="1.0" step="0.05" value="1.0" title="缩放">
+            <button class="btn-zoom" onclick="adjustZoom(0.1)">+</button>
+          </div>
+        </div>
+        
+        <div class="marks-grid-wrapper">
+          <div id="marksGrid" class="marks-grid"></div>
+        </div>
+      </div>
     </div>
+  </main>
+
+  <!-- 页面 2：PO 订单脱水助手 -->
+  <main id="pageDehydrate" class="app-page">
+    <div class="card">
+      <div class="card-header">🔍 PO 订单脱水与规格提取助手</div>
+      <div class="card-body">
+        <div class="tool-container">
+          <div>
+            <label>1. 粘贴杂乱文本，或直接【粘贴/拖入】图片进行 OCR 识别</label>
+            <textarea id="poRawInput" rows="12" class="font-mono" placeholder="直接在此框内 Ctrl+V 粘贴客人的 PDF 截图/图片表格进行自动 OCR 识别。" style="margin-bottom:16px; border: 2px dashed var(--step2-color); background: var(--input-bg); transition: 0.3s;"></textarea>
+            <button class="tool-btn-primary" id="btnDehydrate" onclick="dehydratePO()">执行脱水提取 (双向智能扫描)</button>
+            <button class="tool-btn-secondary" onclick="downloadPOExcel()">📥 导出计算结果为 Excel</button>
+          </div>
+          
+          <div class="tool-result-box">
+            <h3 style="font-size:14px; font-weight:800; color:var(--text); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px;">提取结果与智能换算</h3>
+            <div class="table-scroll-wrap">
+                <table class="mark-table" style="font-size:13px; margin: 0; width: 100%;" id="poResultTable">
+                  <thead>
+                    <tr><th style="font-size:11px;">规格 (mm)</th><th style="font-size:11px;">厚度(Raw)</th><th style="font-size:11px; text-align:right;">数量/单位</th><th style="font-size:11px; text-align:right;">换算张数</th><th style="font-size:11px; text-align:right;">平米 (SQM)</th></tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+            </div>
+            <div style="background: rgba(128,128,128,0.05); border-radius: var(--radius-elem); padding: 16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><span style="font-size:12px; font-weight:700;">换算总张数 (PCS)</span><span class="font-mono" style="font-size:18px; font-weight:900;" id="poTotalPcs">0</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:center;"><span style="font-size:12px; font-weight:700;">精确总平米 (SQM)</span><span class="font-mono" style="font-size:18px; font-weight:900; color:var(--step2-color);" id="poTotalSqm">0.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页面 3：日期时间计算器 -->
+  <main id="pageDate" class="app-page">
+    <div class="tool-container">
+      <div class="card"><div class="card-header">📊 计算日期间隔</div><div class="card-body"><div class="field-row"><div><label>起始日期</label><input type="date" id="dateStart" class="font-mono"></div><div><label>结束日期</label><input type="date" id="dateEnd" class="font-mono"></div></div><button class="tool-btn-primary" onclick="calcDateDiff()">计算</button><div style="margin-top:24px; padding: 20px; background: rgba(128,128,128,0.04); border-radius: var(--radius-elem); text-align: center;"><div id="diffRes" class="font-mono" style="font-size:32px; font-weight:900; color:var(--accent);">0 天</div></div></div></div>
+      <div class="card"><div class="card-header">🗓️ 推算预测日期</div><div class="card-body"><div class="field-row"><div style="grid-column: span 2;"><label>基准日期</label><input type="date" id="dateBase" class="font-mono"></div></div><div class="field-row"><div><label>数量</label><input type="number" id="dateOffset" value="30" class="font-mono"></div><div><label>单位</label><select id="dateUnit"><option value="days">天</option><option value="weeks">周</option><option value="months">月</option></select></div></div><button class="tool-btn-primary" onclick="calcDateOffset()">推算</button><div style="margin-top:24px; padding: 20px; background: rgba(0,122,255,0.04); border: 1px solid rgba(0,122,255,0.1); border-radius: var(--radius-elem); text-align: center;"><div id="offsetRes" class="font-mono" style="font-size:32px; font-weight:900; color:var(--step2-color);">-</div></div></div></div>
+    </div>
+  </main>
+
+  <!-- 页面 4：金额大写转换器 -->
+  <main id="pageAmount" class="app-page">
+    <div class="card" style="max-width: 900px; margin: 0 auto;">
+      <div class="card-header">✍️ 英文发票金额大写转换器 (SAY...ONLY)</div>
+      <div class="card-body">
+        <div class="field-row" style="margin-bottom: 24px;">
+          <div><label>选择报关币种</label><select id="currType" onchange="convertAmount()" style="font-size: 14px; font-weight: 600;"><option value="USD">US DOLLARS</option><option value="EUR">EURO</option><option value="GBP">POUNDS STERLING</option><option value="CNY">CHINESE YUAN</option><option value="HKD">HONG KONG DOLLARS</option><option value="JPY">JAPANESE YEN</option></select></div>
+          <div><label>输入数字金额</label><input type="number" id="numAmount" step="0.01" placeholder="例如: 8888.88" class="font-mono" oninput="convertAmount()" style="font-size: 16px; font-weight: 800; color: var(--accent);"></div>
+        </div>
+        <div class="tool-result-box" style="position:relative; min-height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 40px 30px;">
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:16px;">实时大写结果 (默认 CENTS 格式)</div>
+          <div id="amountResult" class="font-mono" style="font-size:20px; font-weight:900; color:var(--accent); line-height:1.6; word-break:break-word;">- 等待输入 -</div>
+          <button onclick="copyAmountResult()" style="margin-top: 24px; padding: 10px 24px; border-radius: 50px; background: rgba(128,128,128,0.1); border: 1px solid var(--border); font-weight: 800; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">📋</span> 一键复制结果</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="app-footer">Created by Mark | OS V1.7.5 (Perfect Print Defense)</div>
+
+</div>
+
+<button id="backToTop" class="btn-back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">⬆️ 返回顶部</button>
+
+<script>
+// ==========================================
+// 🛡️ 核心数据逻辑
+// ==========================================
+
+let pallets = []; let palletCount = 0; let currentTotalPcs = 0; let currentTotalSqm = 0; let targetData = null;
+let allCardsHTML = []; let currentPageIndex = 0; const MAX_ROWS_PER_CARD = 5; const ORIGINAL_TITLE = document.title;
+
+let saveTimeout;
+function triggerSave() { setSyncStatus(false); clearTimeout(saveTimeout); saveTimeout = setTimeout(saveData, 800); }
+function setSyncStatus(synced) { 
+    const badge = document.getElementById('saveStatus'); const text = document.getElementById('saveStatusText'); 
+    if (synced) { badge.classList.add('synced'); text.innerText = '已自动同步'; } 
+    else { badge.classList.remove('synced'); text.innerText = '等待同步'; } 
+}
+function saveData() { 
+    const data = { 
+        customer: document.getElementById('customer').value, 
+        destination: document.getElementById('destination').value, 
+        poNo: document.getElementById('poNo').value, 
+        workOrderNo: document.getElementById('workOrderNo').value, 
+        pallets: pallets, 
+        palletCount: palletCount, 
+        targetData: targetData 
+    }; 
+    localStorage.setItem('ctp_logistics_data_v2', JSON.stringify(data)); 
+    setSyncStatus(true); 
+}
+
+function toggleSidebar() { document.getElementById('appSidebar').classList.toggle('collapsed'); document.body.classList.toggle('sidebar-collapsed'); }
+function switchPage(pageId, element, titleText) {
+  document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active'); element.classList.add('active');
+  document.getElementById('pageTitle').innerText = titleText;
+  
+  const isMarksPage = (pageId === 'pageMarks');
+  document.getElementById('globalStats').style.display = isMarksPage ? 'flex' : 'none';
+  document.getElementById('btnPrintTop').style.display = isMarksPage ? 'flex' : 'none';
+  
+  if (isMarksPage) generateMarks();
+}
+
+document.addEventListener('keydown', function(e) {
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+  if (!document.getElementById('pageMarks').classList.contains('active')) return;
+  if (e.key === 'ArrowLeft') { prevPage(); e.preventDefault(); } else if (e.key === 'ArrowRight') { nextPage(); e.preventDefault(); }
+});
+
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer'); const toast = document.createElement('div');
+  toast.className = `toast ${type}`; let icon = '✅'; if(type === 'error') icon = '❌'; if(type === 'warning') icon = '⚠️';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+  container.appendChild(toast); void toast.offsetWidth; toast.classList.add('show');
+  setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+}
+
+function toggleTheme() {
+  const html = document.documentElement; const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', newTheme); localStorage.setItem('ctp_theme_v2', newTheme);
+  document.getElementById('themeBtn').innerText = newTheme === 'dark' ? '☀️ 浅色模式' : '🌓 深色模式';
+}
+
+function loadTheme() { if(localStorage.getItem('ctp_theme_v2') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.getElementById('themeBtn').innerText = '☀️ 浅色模式'; } }
+
+const zoomSlider = document.getElementById('zoomSlider');
+zoomSlider.addEventListener('input', (e) => { document.getElementById('marksGrid').style.transform = `scale(${e.target.value})`; });
+function adjustZoom(delta) { let newVal = parseFloat(zoomSlider.value) + delta; if(newVal > 1.0) newVal = 1.0; if(newVal < 0.3) newVal = 0.3; zoomSlider.value = newVal; document.getElementById('marksGrid').style.transform = `scale(${newVal})`; }
+
+function autoScalePreview() {
+  const panel = document.querySelector('.preview-panel'); const wrapper = document.querySelector('.marks-grid-wrapper');
+  if(!panel || !wrapper) return;
+  if(window.innerWidth > 1100) {
+    const scaleW = (wrapper.clientWidth - 48) / 800; const scaleH = (wrapper.clientHeight - 48) / 600; 
+    let targetScale = Math.max(0.3, Math.min(1.0, Math.min(scaleW, scaleH))).toFixed(2);
+    zoomSlider.value = targetScale; document.getElementById('marksGrid').style.transform = `scale(${targetScale})`;
+  } else {
+    let targetScale = Math.max(0.3, (panel.offsetWidth - 40) / 800).toFixed(2);
+    zoomSlider.value = targetScale; document.getElementById('marksGrid').style.transform = `scale(${targetScale})`;
+  }
+}
+window.addEventListener('resize', autoScalePreview);
+
+const dropZone = document.getElementById('dropZone');
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) handleFileUpload({ target: { files: e.dataTransfer.files } }); });
+
+function getWeightCoeff(t) { if (Math.abs(t - 0.15) < 0.001) return 0.378; if (Math.abs(t - 0.25) < 0.001) return 0.648; if (Math.abs(t - 0.30) < 0.001) return 0.729; if (t >= 0.40) return 1.026; return 0; }
+function normalizeThickness(t) { const val = parseFloat(t); if (isNaN(val)) return t; if (val >= 0.255 && val <= 0.30) return 0.30; if (val >= 0.31 && val < 0.41) return 0.40; return val; }
+function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function getSmartPcsPerBox(w, h, t, isCustom, currentPcs) {
+    if (isCustom && currentPcs) return currentPcs; 
+    let tStr = parseFloat(t).toFixed(2);
+    let specKey = `${w}x${h}x${tStr}`;
+    if (targetData && targetData.specs && targetData.specs[specKey] && targetData.specs[specKey].pcsPerBox) return targetData.specs[specKey].pcsPerBox;
+    if (parseFloat(t) === 0.15) return 100;        
+    let maxDim = Math.max(parseFloat(w) || 0, parseFloat(h) || 0);
+    if (maxDim >= 1435) return 30;                 
+    if (maxDim >= 1170) return 40;                 
+    if (maxDim > 0 && maxDim <= 555) return 100;   
+    return 50;                                     
+}
+
+const getDefaults = () => { return { thickness: 0.30, productType: 'CTP' }; };
+
+function handleFileUpload(event) {
+  const file = event.target.files ? event.target.files[0] : (event.dataTransfer ? event.dataTransfer.files[0] : null);
+  if(!file) return; const ext = file.name.split('.').pop().toLowerCase();
+  if (['xlsx', 'xls', 'csv'].includes(ext)) { const reader = new FileReader(); reader.onload = (e) => { parseExcelData(e.target.result); }; reader.readAsArrayBuffer(file); } else { showToast("不支持的文件格式！请上传 Excel 文件", 'error'); }
+  if (event.target && event.target.value) event.target.value = '';
+}
+window.addEventListener('scroll', () => { const btn = document.getElementById('backToTop'); if (window.scrollY > 300) btn.classList.add('show'); else btn.classList.remove('show'); });
+
+function toggleBasicInfoPanel() { const body = document.getElementById('basicInfoBody'); const text = document.getElementById('basicInfoToggleText'); if (body.style.display === 'none') { body.style.display = 'block'; text.innerText = '点击收起 ▲'; } else { body.style.display = 'none'; text.innerText = '点击展开设置 ▼'; } }
+function toggleMappingPanel() { const body = document.getElementById('mappingBody'); const text = document.getElementById('mappingToggleText'); if (body.style.display === 'none') { body.style.display = 'block'; text.innerText = '点击收起 ▲'; } else { body.style.display = 'none'; text.innerText = '点击展开设置 ▼'; } }
+
+let dynamicTypeMapping = [];
+const defaultTypeMapping = [{ code: '300-3', name: 'CTCP' }, { code: '300-SL', name: 'CTCP-DL' }, { code: '300-S', name: 'CTCP' }, { code: '200-SG', name: 'CTP' }, { code: '200-S', name: 'CTP' }, { code: 'JRT-M', name: 'DOP' }];
+function loadTypeMapping() { const saved = localStorage.getItem('ctp_type_mapping_v2'); if (saved) { try { dynamicTypeMapping = JSON.parse(saved); } catch(e) { dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping)); } } else { dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping)); } renderMappingList(); }
+function saveTypeMapping() { localStorage.setItem('ctp_type_mapping_v2', JSON.stringify(dynamicTypeMapping)); }
+function renderMappingList() {
+    const container = document.getElementById('mappingList'); container.innerHTML = '';
+    dynamicTypeMapping.forEach((m, idx) => { container.innerHTML += `<div style="display:flex; gap:10px; margin-bottom:8px; align-items:center;"><input type="text" class="font-mono" value="${m.code}" onchange="updateMapping(${idx}, 'code', this.value)" placeholder="原厂代号 (如 200-SG)"><span style="color:var(--text-muted)">➡️</span><input type="text" class="font-mono" value="${m.name}" onchange="updateMapping(${idx}, 'name', this.value)" placeholder="英文品名 (如 CTP)"><button class="btn-remove" style="opacity:1; height:36px; padding:0 12px;" onclick="removeMapping(${idx})">✕</button></div>`; });
+}
+function addMapping() { dynamicTypeMapping.push({ code: '', name: '' }); renderMappingList(); saveTypeMapping(); }
+function removeMapping(idx) { dynamicTypeMapping.splice(idx, 1); renderMappingList(); saveTypeMapping(); }
+function updateMapping(idx, field, value) { dynamicTypeMapping[idx][field] = value.trim(); saveTypeMapping(); }
+function buildMappingDictionaries() { let mappingDict = {}; let directTypesSet = new Set(); dynamicTypeMapping.forEach(m => { if (m.code && m.name) { mappingDict[m.code.toUpperCase()] = m.name.toUpperCase(); directTypesSet.add(m.name.toUpperCase()); } }); return { mappingDict, directTypes: Array.from(directTypesSet) }; }
+
+function init() {
+  loadTheme(); loadTypeMapping();
+  try { if (!loadData()) initSample(); } catch (e) { initSample(); }
+  ['customer','destination','poNo','workOrderNo'].forEach(id => { 
+      document.getElementById(id).addEventListener('input', () => { 
+          document.getElementById(id).classList.remove('input-warning'); 
+          generateMarks(); triggerSave(); 
+      }); 
+  });
+  const pasteInput = document.getElementById('pasteInput'); if (pasteInput) { pasteInput.addEventListener('paste', () => { setTimeout(() => { parsePastedText(); }, 50); }); }
+  setStartToNow(); setCalcDateToToday(); setTimeout(autoScalePreview, 100);
+}
+function initSample() { pallets = []; palletCount = 0; addPallet(); }
+
+function loadData() {
+  const raw = localStorage.getItem('ctp_logistics_data_v2');
+  if (raw) { try { 
+      const data = JSON.parse(raw); 
+      document.getElementById('customer').value = data.customer || ''; 
+      document.getElementById('poNo').value = data.poNo || ''; 
+      document.getElementById('workOrderNo').value = data.workOrderNo || ''; 
+      document.getElementById('destination').value = data.destination || ''; 
+      pallets = data.pallets || []; palletCount = data.palletCount || pallets.length; targetData = data.targetData || null; 
+      pallets.forEach(p => p.products.forEach(pr => { if (pr.isCustomPack === undefined) pr.isCustomPack = false; })); 
+      renderPalletList(); generateMarks(); return true; 
+  } catch(e) {} }
+  return false;
+}
+function clearTargetData() { targetData = null; triggerSave(); generateMarks(); showToast("已清除流程单目标"); }
+
+function parseWorkOrder(data) {
+    let headerRowIdx = -1; let colW = -1, colH = -1, colT = -1, colQty = -1, colSqm = -1, colPcsPerBox = -1;
+    for (let r = 0; r < Math.min(data.length, 50); r++) {
+        if(!data[r]) continue; let rowStr = data[r].join("").replace(/\s/g, "");
+        if (rowStr.includes("规格") && (rowStr.includes("厚度") || rowStr.includes("数量"))) {
+            headerRowIdx = r;
+            for (let c = 0; c < data[r].length; c++) {
+                let cell = String(data[r][c]).trim().replace(/\s/g, '');
+                if (cell === "规格") colW = c; if (cell === "厚度") colT = c; if (cell === "数量") colQty = c; if (cell === "平方米") colSqm = c; if (cell === "包装片数") colPcsPerBox = c;
+            }
+            break;
+        }
+    }
+    if (headerRowIdx !== -1 && colW !== -1) {
+        for(let r = headerRowIdx + 1; r < Math.min(data.length, headerRowIdx + 15); r++) {
+            if(!data[r]) continue; let wVal = parseFloat(data[r][colW]);
+            if (!isNaN(wVal) && wVal > 100) {
+                if (parseFloat(data[r][colW+2]) > 100) colH = colW+2; else if (parseFloat(data[r][colW+1]) > 100) colH = colW+1;
+                break;
+            }
+        }
+    }
+
+    let targetPcs = null, targetSqm = null; let customerStr = "", poStr = "", woStr = ""; let targetSpecs = {}; 
+    for(let r=0; r<data.length; r++) {
+        const row = data[r]; if(!row) continue;
+        for(let c=0; c<row.length; c++) {
+            let cell = String(row[c]).trim(); if(!cell) continue;
+            if(cell.includes("制单编号：")) woStr = cell.replace("制单编号：", "").trim(); else if(cell === "制单编号") woStr = String(row[c+1]||"").trim();
+            if(cell === "客户国家") customerStr = String(row[c+1]||"").trim();
+            if(cell === "发票号") poStr = String(row[c+1]||"").trim();
+            if(cell === "合计") {
+                if(colQty !== -1 && parseFloat(row[colQty])) targetPcs = parseFloat(row[colQty]); else if(c+1 < row.length && parseFloat(row[c+1]) > 1000) targetPcs = parseFloat(row[c+1]);
+                if(colSqm !== -1 && parseFloat(row[colSqm])) targetSqm = parseFloat(row[colSqm]);
+            }
+        }
+    }
+
+    if (headerRowIdx !== -1 && colW !== -1 && colH !== -1) {
+        for(let r = headerRowIdx + 1; r < data.length; r++) {
+            const row = data[r]; if(!row) continue; let wVal = parseFloat(row[colW]); let hVal = parseFloat(row[colH]);
+            if (!isNaN(wVal) && wVal > 100 && !isNaN(hVal) && hVal > 100) {
+                let tNorm = 0.30;
+                if (colT !== -1) { let tRaw = parseFloat(row[colT]); if (!isNaN(tRaw) && tRaw >= 0.1 && tRaw < 1.0) tNorm = normalizeThickness(tRaw); }
+                let tStr = tNorm.toFixed(2); let specKey = `${wVal}x${hVal}x${tStr}`; let specObj = { pcsPerBox: null };
+                if (colPcsPerBox !== -1) { let boxStr = String(row[colPcsPerBox] || ""); let boxMatch = boxStr.match(/\d+/); if (boxMatch) specObj.pcsPerBox = parseInt(boxMatch[0]); }
+                targetSpecs[specKey] = specObj;
+            }
+        }
+    } else {
+        for(let r=0; r<data.length; r++) {
+            const row = data[r]; if(!row) continue;
+            for(let c=0; c<row.length; c++) {
+                let wVal = parseFloat(row[c]);
+                if(!isNaN(wVal) && wVal > 100 && (String(row[c+1]).trim().toLowerCase() === 'x' || String(row[c+1]).trim() === '*')) {
+                    let hVal = parseFloat(row[c+2]);
+                    if(!isNaN(hVal) && hVal > 100) {
+                       let tRaw = 0.30;
+                       for(let k=c+3; k<row.length && k<c+8; k++) { let temp = parseFloat(row[k]); if(!isNaN(temp) && temp >= 0.1 && temp < 1.0) { tRaw = temp; break; } }
+                       let tNorm = normalizeThickness(tRaw); let specKey = `${wVal}x${hVal}x${tNorm.toFixed(2)}`; targetSpecs[specKey] = { pcsPerBox: null };
+                    }
+                }
+            }
+        }
+    }
+
+    woStr = woStr.replace(/[\u4e00-\u9fa5\s]/g, '').trim(); 
+    if(woStr) { document.getElementById('workOrderNo').value = woStr; triggerSave(); }
+    if(customerStr) {
+        document.getElementById('customer').value = customerStr; 
+        const countryMap = { "土耳其":"TURKEY", "德国":"GERMANY", "菲律宾":"PHILIPPINES", "韩国":"SOUTH KOREA", "南韩":"SOUTH KOREA", "印度":"INDIA", "俄罗斯":"RUSSIA", "荷兰":"NETHERLANDS", "拉脱维亚":"LATVIA", "阿联酋":"UNITED ARAB EMIRATES", "泰国":"THAILAND", "西班牙":"SPAIN", "波兰":"POLAND", "墨西哥":"MEXICO", "英国":"UNITED KINGDOM", "比利时":"BELGIUM", "希腊":"GREECE", "捷克":"CZECH REPUBLIC", "意大利":"ITALY", "新加坡":"SINGAPORE", "哥伦比亚":"COLOMBIA", "白俄罗斯":"BELARUS", "匈牙利":"HUNGARY", "美国":"UNITED STATES", "印度尼西亚":"INDONESIA", "印尼":"INDONESIA", "奥地利":"AUSTRIA", "越南":"VIETNAM", "卡塔尔":"INDIAN" };
+        let mappedDest = customerStr.toUpperCase();
+        for(let key in countryMap) { if(customerStr.includes(key)) { mappedDest = countryMap[key]; break; } }
+        document.getElementById('destination').value = mappedDest;
+        triggerSave();
+    }
+    if(poStr) { document.getElementById('poNo').value = poStr; triggerSave(); }
+
+    targetData = { pcs: targetPcs, sqm: targetSqm, specs: targetSpecs };
+    triggerSave(); generateMarks(); showToast("📝 流程单解析成功！已启用 V1.7.5 三维坐标定位提取。", "success");
+}
+
+function processTextToPallets(text) {
+    text = text.replace(/[$~]/g, ' ').replace(/\n/g, ' ');
+    const { mappingDict, directTypes } = buildMappingDictionaries();
+    const allKnownTypes = [...Object.keys(mappingDict), ...directTypes].sort((a,b) => b.length - a.length);
+    if (allKnownTypes.length === 0) { showToast("请先在【英文品名】配置至少一条识别规则！", "warning"); return []; }
+
+    const safeTypes = allKnownTypes.map(escapeRegExp);
+    const typeRegex = new RegExp(`(${safeTypes.join('|')})`, 'gi');
+    text = text.replace(typeRegex, ` | $1 | `);
+
+    let parsedPallets = []; let idCounter = 0; const defaults = getDefaults(); let currentType = defaults.productType; let currentCarton = []; let specMemoryUsed = 0; 
+    const combinedRegex = new RegExp(`(${safeTypes.join('|')})|((\\d{2,}(?:\\.\\d+)?)\\s*[*xX\\-×]\\s*(\\d{2,}(?:\\.\\d+)?)(?:\\s*[*xX\\-×]\\s*(\\d+(?:\\.\\d+)?))?\\s+((?:\\d+\\s*\\+\\s*)*\\d+)\\b)|(\\[PALLET\\]|\\b\\d{3,}\\s*[*xX\\-×]\\s*\\d{3,}(?:\\s*[*xX\\-×]\\s*[\\d\\.]+)?\\s*(?:mm)?\\b)`, 'gi');
+    
+    let match;
+    while ((match = combinedRegex.exec(text)) !== null) {
+        if (match[1]) {
+            let rawType = match[1].toUpperCase(); currentType = mappingDict[rawType] || rawType;
+        } else if (match[2]) {
+            let w = parseFloat(match[3]); let h = parseFloat(match[4]); let t = match[5] ? parseFloat(match[5]) : defaults.thickness;
+            t = normalizeThickness(t);
+            
+            let tStr = t.toFixed(2);
+            let specKey = `${w}x${h}x${tStr}`;
+            let matchedSpec = (targetData && targetData.specs) ? targetData.specs[specKey] : null;
+            
+            let boxArr = match[6].split('+').map(n => parseInt(n.trim()));
+            boxArr.forEach((bVal, idx) => {
+               let autoPcsPb = getSmartPcsPerBox(w, h, t, false, null);
+               let isCustom = false;
+               if (matchedSpec && matchedSpec.pcsPerBox) {
+                   autoPcsPb = matchedSpec.pcsPerBox;
+                   isCustom = true;
+                   specMemoryUsed++;
+               }
+               
+               let p = { w: w, h: h, thickness: t, type: currentType, boxes: bVal, pcsPerBox: autoPcsPb, pcs: bVal * autoPcsPb, isCustomPack: isCustom };
+               if (idx === 0) { currentCarton.push(p); } else { idCounter++; parsedPallets.push({ id: idCounter, isOpen: false, products: [p] }); }
+            });
+        } else if (match[7]) {
+            if (currentCarton.length > 0) { idCounter++; parsedPallets.push({ id: idCounter, isOpen: false, products: currentCarton }); currentCarton = []; }
+        }
+    }
+    if (currentCarton.length > 0) { idCounter++; parsedPallets.push({ id: idCounter, isOpen: false, products: currentCarton }); }
+    if(specMemoryUsed > 0) { setTimeout(() => showToast(`🧠 记忆库触发：自动应用了 ${specMemoryUsed} 组流程单特殊包装数据`), 1000); }
+    return parsedPallets;
+}
+
+function parsePastedText() {
+    let text = document.getElementById('pasteInput').value; if (!text.trim()) { showToast('文本框为空，请先粘贴内容！', 'error'); return; }
+    let newPallets = processTextToPallets(text); if (newPallets.length === 0) { showToast("未能识别到有效打托数据。", 'error'); return; }
+    if (pallets.length > 0) { if (confirm(`识别出 ${newPallets.length} 个托盘。是否【清空】现有列表并覆盖？`)) { pallets = newPallets; palletCount = newPallets.length; } else { newPallets.forEach(np => { palletCount++; np.id = palletCount; pallets.push(np); }); } } else { pallets = newPallets; palletCount = newPallets.length; }
+    document.getElementById('pasteInput').value = ''; renderPalletList(); generateMarks(); triggerSave(); showToast(`📦 成功生成 ${newPallets.length} 个托盘`);
+}
+
+function parseExcelData(arrayBuffer) {
+  try {
+    const wb = XLSX.read(arrayBuffer, {type: 'array'}); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
+    if (data.length === 0) return showToast("表格为空！", 'error');
+    let isWorkOrder = false; for(let i=0; i<Math.min(15, data.length); i++) { let rs = data[i].join("").replace(/\s/g, ""); if(rs.includes("分管部门") || rs.includes("制单编号") || rs.includes("客户国家")) { isWorkOrder = true; break; } }
+    if (isWorkOrder) return parseWorkOrder(data);
+
+    let fullText = ""; for (let r = 0; r < data.length; r++) { if (!data[r]) continue; for (let c = 0; c < data[r].length; c++) { let val = String(data[r][c] || "").replace(/[\u00A0]+/g, ' ').trim(); if (val) fullText += val + " [PALLET] "; } }
+    let newPallets = processTextToPallets(fullText); if (newPallets.length === 0) return showToast("未能识别到打托数据", 'error');
+    if (pallets.length > 0) { if (confirm(`是否覆盖现有数据？`)) { pallets = newPallets; palletCount = newPallets.length; } else { newPallets.forEach(np => { palletCount++; np.id = palletCount; pallets.push(np); }); } } else { pallets = newPallets; palletCount = newPallets.length; }
+    renderPalletList(); generateMarks(); triggerSave(); showToast(`📦 导入成功！已排版 ${newPallets.length} 个托盘`);
+  } catch (err) { showToast("读取 Excel 失败。", 'error'); }
+}
+
+function getStrLen(str) { return str ? str.replace(/[\u0100-\uffff]/g, "aa").length : 0; }
+
+function buildMarkHTML(customer, destination, poNo, workOrderNo, origin, pNum, pTotal, products, tPcs, tBoxes, tNW, tGW, curPage, tPages) {
+  const tpl = document.getElementById('tplSelect') ? document.getElementById('tplSelect').value : 'bloomberg';
+  
+  let tableSt = '', thSt = '', tdSt = '', tableWrapSt = '';
+  if (tpl === 'minimal') {
+      tableSt = 'font-size:22pt;'; thSt = 'font-size:5mm; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 1.5mm 1mm;'; tdSt = 'border-bottom: 1px solid rgba(0,0,0,0.15); padding: 2mm 1mm; font-weight: 600;';
+  } else if (tpl === 'boxed') {
+      tableSt = 'font-size:18pt; border: 2px solid #000;'; thSt = 'font-size:3.5mm; border: 1px solid #000; padding: 2mm; background: rgba(0,0,0,0.05);'; tdSt = 'border: 1px solid #000; padding: 2mm; font-weight: 600;'; tableWrapSt = 'padding: 1mm;';
+  } else if (tpl === 'modern') {
+      tableSt = 'font-size:19pt;'; thSt = 'font-size:4mm; border-top: 3px solid #000; border-bottom: 3px solid #000; padding: 2mm 1mm;'; tdSt = 'border-bottom: 1px dashed rgba(0,0,0,0.4); padding: 2.5mm 1mm; font-weight: 800;';
+  } else { 
+      tableSt = 'font-size:18pt;'; thSt = 'font-size:3.5mm; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 1.5mm 1mm;'; tdSt = 'border-bottom: 1px solid rgba(0,0,0,0.15); padding: 2mm 1mm; font-weight: 600;';
+  }
+
+  let rows = products.map(p => `<tr>
+    <td style="${tdSt} text-align:left; border-left:none;">${p.w}×${p.h}×${parseFloat(p.thickness).toFixed(2)}</td>
+    <td style="${tdSt} text-align:left;">${(p.type||'').replace(/\s+/g, '&nbsp;')}</td>
+    <td style="${tdSt} text-align:right;">${p.pcs}</td>
+    <td style="${tdSt} text-align:right; border-right:none;">${p.boxes}</td>
+  </tr>`).join('');
+  if(!rows) rows = `<tr><td colspan="4" style="color:#999;padding:6px;text-align:center; ${tdSt}">— 空 —</td></tr>`;
+  
+  let pageTagHtml = tPages > 1 ? `<span class="page-tag-print">PAGE ${curPage}/${tPages}</span>` : '';
+  let safeCustomer = (customer||'').trim().replace(/\s+/g, '&nbsp;'); let custScale = getStrLen(customer) > 10 ? 10 / getStrLen(customer) : 1; let webCustFontSize = (22 * custScale).toFixed(2) + 'mm';
+  let leftItem = (poNo ? `PO NO.: ${poNo.trim()}` : '').replace(/\s+/g, '&nbsp;'); let rightItem = (workOrderNo ? `FACTORY NO.: ${workOrderNo.trim()}` : '').replace(/\s+/g, '&nbsp;');
+  let safeDest = (destination||'').trim().replace(/\s+/g, '&nbsp;'); 
+  
+  const showW = document.getElementById('chkWeight') ? document.getElementById('chkWeight').checked : false; 
+  const showP = document.getElementById('chkPO') ? document.getElementById('chkPO').checked : true;
+  const showT = document.getElementById('chkTotal') ? document.getElementById('chkTotal').checked : true;
+  let poHtml = showP ? `<div class="mark-po"><span>${leftItem}</span><span>${rightItem}</span></div>` : '';
+  let footerHtml = '';
+  
+  if (tpl === 'bloomberg' || tpl === 'boxed' || tpl === 'modern') {
+      let fData = ``;
+      if (showT) { fData += `<div style="display:flex; align-items:baseline; gap:1.5mm; margin-right:6mm;"><span style="font-size:3mm;font-weight:800;color:#555;">TOTAL PCS:</span><span style="font-size:6.5mm;font-weight:900;font-family:'JetBrains Mono';">${tPcs.toLocaleString()}</span></div><div style="display:flex; align-items:baseline; gap:1.5mm; margin-right:6mm;"><span style="font-size:3mm;font-weight:800;color:#555;">BOXES:</span><span style="font-size:6.5mm;font-weight:900;font-family:'JetBrains Mono';">${tBoxes}</span></div>`; }
+      if (showW) { fData += `<div style="display:flex; align-items:baseline; gap:1.5mm; margin-right:6mm;"><span style="font-size:3mm;font-weight:800;color:#555;">N.W.(KGS):</span><span style="font-size:6.5mm;font-weight:900;font-family:'JetBrains Mono';">${Math.round(tNW)}</span></div><div style="display:flex; align-items:baseline; gap:1.5mm; margin-right:2mm;"><span style="font-size:3mm;font-weight:800;color:#555;">G.W.(KGS):</span><span style="font-size:6.5mm;font-weight:900;font-family:'JetBrains Mono';">${Math.round(tGW)}</span></div>`; }
+      footerHtml = `<div class="mark-footer" style="border-top:2px solid #000; padding-top:2mm; margin-top:1.5mm; display:flex; justify-content:space-between; align-items:flex-end;"><div style="display:flex; flex-wrap:wrap; align-items:baseline;">${fData}</div></div>`;
+  } else {
+      let mData = ``;
+      if (showT) { mData += `<div style="display:flex; align-items:baseline; gap:2mm; margin-right:8mm;"><span style="font-size:4mm;font-weight:800;color:#555;">PCS:</span><span style="font-size:9mm;font-weight:900;font-family:'JetBrains Mono';">${tPcs.toLocaleString()}</span></div><div style="display:flex; align-items:baseline; gap:2mm; margin-right:8mm;"><span style="font-size:4mm;font-weight:800;color:#555;">BOXES:</span><span style="font-size:9mm;font-weight:900;font-family:'JetBrains Mono';">${tBoxes}</span></div>`; }
+      if (showW) { mData += `<div style="display:flex; align-items:baseline; gap:2mm; margin-right:8mm;"><span style="font-size:4mm;font-weight:800;color:#555;">N.W.(KGS):</span><span style="font-size:9mm;font-weight:900;font-family:'JetBrains Mono';">${Math.round(tNW)}</span></div><div style="display:flex; align-items:baseline; gap:2mm; margin-right:2mm;"><span style="font-size:4mm;font-weight:800;color:#555;">G.W.(KGS):</span><span style="font-size:9mm;font-weight:900;font-family:'JetBrains Mono';">${Math.round(tGW)}</span></div>`; }
+      footerHtml = `<div class="mark-footer" style="border-top:2px solid #000; padding-top:3mm; margin-top:2mm; display:flex; flex-wrap:wrap; align-items:center;">${mData}</div>`;
+  }
+
+  let destSt = tpl === 'minimal' ? 'font-size:10mm;' : 'font-size:6mm;';
+
+  return `<div class="mark-inner">
+      <div class="mark-top">
+          <div class="mark-pallet-badge"><span class="pallet-badge-label">PALLET NO.</span><span class="pallet-badge-number">${pNum}/${pTotal}</span>${pageTagHtml}</div>
+          <div class="mark-logo-area"><div class="mark-logo" style="font-size:${webCustFontSize};">${safeCustomer}</div></div>
+      </div>
+      ${poHtml}
+      <div class="mark-origin">
+          <span> </span>
+          <div class="dest-wrapper"><span class="dest-label">DESTINATION:</span><span class="dest-value" style="${destSt}">${safeDest}</span></div>
+      </div>
+      <div class="mark-table-wrap" style="${tableWrapSt}">
+          <table class="mark-table" style="width:100%; border-collapse:collapse; ${tpl==='boxed'?'border:2px solid #000;':''}">
+              <thead>
+                  <tr>
+                      <th style="${thSt} text-align:left; border-left:none;">SIZE (mm)</th>
+                      <th style="${thSt} text-align:left;">TYPE</th>
+                      <th style="${thSt} text-align:right;">PCS</th>
+                      <th style="${thSt} text-align:right; border-right:none;">BOXES</th>
+                  </tr>
+              </thead>
+              <tbody style="font-family:'JetBrains Mono', monospace; color:#000; ${tableSt}">
+                  ${rows}
+              </tbody>
+          </table>
+      </div>
+      ${footerHtml}
+  </div>`;
+}
+
+function getPrintFileName() {
+    const rawWo = document.getElementById('workOrderNo').value.trim(); const rawDest = document.getElementById('destination').value.trim();
+    const safeWo = rawWo.replace(/[\/\\:*?"<>|]/g, '-'); const safeDest = rawDest.replace(/[\/\\:*?"<>|]/g, '-');
+    const now = new Date(); const timeStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+    if (safeWo && safeDest) return `${safeWo}_${safeDest}_唛头 ${timeStr}`; if (safeDest) return `${safeDest}_唛头 ${timeStr}`; if (safeWo) return `${safeWo}_唛头 ${timeStr}`; return `未命名_唛头 ${timeStr}`;
+}
+
+function validateAndPrint() {
+  const destInput = document.getElementById('destination'); let isValid = true; let hasProducts = false;
+  document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
+  if (!destInput.value.trim()) { destInput.classList.add('input-warning'); showToast('⚠️ 目的地不能为空！', 'error'); destInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); isValid = false; }
+  pallets.forEach(pallet => { let palletHasError = false; pallet.products.forEach((pr) => { hasProducts = true; if (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox) { isValid = false; palletHasError = true; } }); if (palletHasError) pallet.isOpen = true; });
+  if (!hasProducts && isValid) { showToast('⚠️ 没有可打印的数据！', 'error'); isValid = false; }
+  if (!isValid) {
+      renderPalletList(); let firstErrorFound = false;
+      pallets.forEach(pallet => { pallet.products.forEach((pr, pi) => { const wrapper = document.getElementById(`prod-${pallet.id}-${pi}`); if (wrapper) { const inputs = wrapper.querySelectorAll('input'); if (!pr.w) inputs[0].classList.add('input-warning'); if (!pr.h) inputs[1].classList.add('input-warning'); if (!pr.thickness) inputs[2].classList.add('input-warning'); if (!pr.type) inputs[3].classList.add('input-warning'); if (!pr.boxes) inputs[4].classList.add('input-warning'); if (!pr.pcsPerBox) inputs[5].classList.add('input-warning'); if (!firstErrorFound && (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox)) { wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' }); firstErrorFound = true; } } }); });
+      if (hasProducts) showToast('⚠️ 请补充带红框的必填数据！', 'error'); return; 
+  }
+  
+  if (targetData && (targetData.pcs || targetData.sqm)) {
+     let pcsMatch = (!targetData.pcs || currentTotalPcs === targetData.pcs);
+     let sqmMatch = (!targetData.sqm || Math.abs(currentTotalSqm - targetData.sqm) <= 0.1);
+     if (!pcsMatch || !sqmMatch) {
+         let diffPcs = currentTotalPcs - (targetData.pcs || 0); let msg = `⚠️ 严重警告：打托数据与流程单严重不符！\n\n`;
+         if(!pcsMatch) msg += `[总张数] 相差: ${diffPcs > 0 ? '+' : ''}${diffPcs} 张\n`; if(!sqmMatch) msg += `[总平米] 不一致\n`; msg += `\n确认属于特殊情况强制打印？`;
+         if(!confirm(msg)) return; 
+     }
+  }
+  
+  document.title = getPrintFileName(); document.getElementById('marksGrid').innerHTML = allCardsHTML.map(c => c.html).join('');
+  setTimeout(() => { window.print(); setTimeout(() => { document.title = ORIGINAL_TITLE; renderPage(); }, 2000); }, 100);
+}
+
+function printSinglePallet(palletId) {
+  const destInput = document.getElementById('destination');
+  if (!destInput.value.trim()) { destInput.classList.add('input-warning'); showToast('⚠️ 目的地不能为空！', 'error'); return; }
+  const targetCards = allCardsHTML.filter(c => c.id === palletId);
+  if(targetCards.length === 0) { showToast("该托盘暂无数据", "warning"); return; }
+  document.getElementById('marksGrid').innerHTML = targetCards.map(c => c.html).join('');
+  document.title = getPrintFileName();
+  setTimeout(() => { window.print(); setTimeout(() => { document.title = ORIGINAL_TITLE; renderPage(); }, 2000); }, 100);
+}
+
+function updateReconciliation() {
+   const reconAlert = document.getElementById('reconAlert');
+   const reconContent = document.getElementById('reconContent');
+   const statPcsEl = document.getElementById('statPcs');
+   const statSqmEl = document.getElementById('statSqm');
+   
+   if(!targetData || (!targetData.pcs && !targetData.sqm)) {
+       reconAlert.style.display = 'none'; statPcsEl.style.color = 'var(--accent)'; statSqmEl.style.color = 'var(--accent)'; return;
+   }
+   
+   let pcsDiff = currentTotalPcs - (targetData.pcs || 0);
+   let sqmDiff = currentTotalSqm - (targetData.sqm || 0);
+   let pcsMatch = !targetData.pcs || pcsDiff === 0;
+   let sqmMatch = !targetData.sqm || Math.abs(sqmDiff) <= 0.1;
+
+   reconAlert.style.display = 'flex';
+
+   if(pcsMatch && sqmMatch) {
+       reconAlert.style.background = 'rgba(52,199,89,0.1)'; reconAlert.style.border = '1px solid rgba(52,199,89,0.3)'; reconAlert.style.color = 'var(--success)';
+       reconContent.innerHTML = `<span style="font-size:16px">✅</span> <span>业财对账通过：打托实绩与流程单总数完美一致！</span>`;
+       statPcsEl.style.color = 'var(--success)'; statSqmEl.style.color = 'var(--success)';
+   } else {
+       reconAlert.style.background = 'var(--danger-light)'; reconAlert.style.border = '1px solid rgba(255,59,48,0.3)'; reconAlert.style.color = 'var(--danger)';
+       let errStr = [];
+       if(!pcsMatch) errStr.push(`缺/溢 ${pcsDiff > 0 ? '+'+pcsDiff : pcsDiff} 张 (目标: ${(targetData.pcs||0).toLocaleString()})`);
+       if(!sqmMatch) errStr.push(`平米数差 ${sqmDiff > 0 ? '+'+sqmDiff.toFixed(2) : sqmDiff.toFixed(2)} (目标: ${(targetData.sqm||0).toFixed(2)})`);
+
+       reconContent.innerHTML = `<span style="font-size:16px">🚨</span> <span>异常：账实不符！${errStr.join(' | ')}</span>`;
+       statPcsEl.style.color = pcsMatch ? 'var(--text)' : 'var(--danger)'; statSqmEl.style.color = sqmMatch ? 'var(--text)' : 'var(--danger)';
+   }
+}
+
+function renderPage() { const grid = document.getElementById('marksGrid'); const indicator = document.getElementById('pageIndicator'); if (allCardsHTML.length === 0) { grid.innerHTML = ''; indicator.innerText = '0 / 0'; return; } if (currentPageIndex >= allCardsHTML.length) currentPageIndex = allCardsHTML.length - 1; if (currentPageIndex < 0) currentPageIndex = 0; grid.innerHTML = allCardsHTML[currentPageIndex].html; indicator.innerText = `${currentPageIndex + 1} / ${allCardsHTML.length}`; }
+function prevPage() { if(currentPageIndex > 0) { currentPageIndex--; renderPage(); } }
+function nextPage() { if(currentPageIndex < allCardsHTML.length - 1) { currentPageIndex++; renderPage(); } }
+
+function generateMarks() {
+  allCardsHTML = []; 
+  const customer = document.getElementById('customer').value.toUpperCase() || ''; const poNo = document.getElementById('poNo').value.toUpperCase() || '';
+  const workOrderNo = document.getElementById('workOrderNo').value.toUpperCase() || ''; const destination = document.getElementById('destination').value.toUpperCase() || '';
+  const origin = 'MADE IN CHINA'; const total = pallets.length;
+  let globalBoxes = 0; let globalPcs = 0; let globalSqm = 0;
+
+  pallets.forEach((pallet, idx) => {
+    const validProducts = pallet.products.filter(p => parseFloat(p.w) > 0 && parseFloat(p.h) > 0 && parseFloat(p.boxes) > 0);
+    const totalPcs = validProducts.reduce((s, p) => s + (parseFloat(p.pcs) || 0), 0);
+    const totalBoxes = validProducts.reduce((s, p) => s + (parseFloat(p.boxes) || 0), 0);
+    const totalNW = validProducts.reduce((s, p) => { let sqm = (parseFloat(p.w) || 0) * (parseFloat(p.h) || 0) * 0.000001 * (parseFloat(p.pcs) || 0); return s + sqm * getWeightCoeff(parseFloat(p.thickness)); }, 0);
+    const totalGW = totalNW * 1.13;
+
+    validProducts.forEach(p => { globalBoxes += parseFloat(p.boxes) || 0; globalPcs += parseFloat(p.pcs) || 0; globalSqm += ((parseFloat(p.w) || 0) / 1000) * ((parseFloat(p.h) || 0) / 1000) * (parseFloat(p.pcs) || 0); });
+
+    if (validProducts.length === 0) {
+       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, [], 0, 0, 0, 0, 1, 1)}</div>`});
+    } else {
+       const totalPages = Math.ceil(validProducts.length / MAX_ROWS_PER_CARD);
+       for (let i = 0; i < validProducts.length; i += MAX_ROWS_PER_CARD) {
+         const chunk = validProducts.slice(i, i + MAX_ROWS_PER_CARD); const currentPage = Math.floor(i / MAX_ROWS_PER_CARD) + 1;
+         allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, chunk, totalPcs, totalBoxes, totalNW, totalGW, currentPage, totalPages)}</div>`});
+       }
+    }
+  });
+
+  currentTotalPcs = globalPcs; currentTotalSqm = globalSqm;
+  const gBoxesEl = document.getElementById('g-boxes'); const gPcsEl = document.getElementById('g-pcs');
+  if (parseInt(gBoxesEl.innerText) !== globalBoxes) { gBoxesEl.style.color = 'var(--step2-color)'; setTimeout(()=> gBoxesEl.style.color = '', 300); }
+  if (parseInt(gPcsEl.innerText.replace(/,/g,'')) !== globalPcs) { gPcsEl.style.color = 'var(--step2-color)'; setTimeout(()=> gPcsEl.style.color = '', 300); }
+
+  document.getElementById('statBoxes').innerText = globalBoxes; document.getElementById('statPcs').innerText = globalPcs.toLocaleString(); document.getElementById('statSqm').innerText = globalSqm.toFixed(2);
+  gBoxesEl.innerText = globalBoxes; gPcsEl.innerText = globalPcs.toLocaleString(); document.getElementById('g-sqm').innerText = globalSqm.toFixed(2);
+  
+  const globalStatsEl = document.getElementById('globalStats');
+  const isMarksPage = document.getElementById('pageMarks').classList.contains('active');
+  if ((globalBoxes > 0 || globalPcs > 0) && isMarksPage) { globalStatsEl.style.display = 'flex'; setTimeout(() => globalStatsEl.classList.add('active'), 50); } else { globalStatsEl.classList.remove('active'); }
+
+  updateReconciliation(); renderPage(); 
+}
+
+function clearAllPallets() { if(confirm('确定要清空所有托盘数据吗？')){ pallets = []; palletCount = 0; renderPalletList(); generateMarks(); triggerSave(); showToast('清单已清空');} }
+
+function renderPalletList() {
+  const container = document.getElementById('palletList'); container.innerHTML = '';
+  pallets.forEach((pallet, idx) => {
+    const div = document.createElement('div'); div.className = `pallet-item ${pallet.isOpen ? 'open' : ''}`; div.id = `pallet-item-${pallet.id}`;
+    let palletTotalPcs = 0; pallet.products.forEach(p => { palletTotalPcs += (parseFloat(p.pcs) || 0); });
+    let summary = pallet.products.map(p => { if(!p.w || !p.boxes) return ''; return `${p.w}x${p.h}x${parseFloat(p.thickness).toFixed(2)} ${p.type} ${p.boxes}箱`; }).filter(s => s).join(' / ');
+    if (summary) { summary += ` | 总张数: ${palletTotalPcs}`; }
+    let hasEmpty = pallet.products.some(p => !p.w || !p.h || !p.thickness || !p.type || !p.boxes || !p.pcsPerBox);
+    let redDotHtml = hasEmpty ? `<span class="red-dot-radar" title="存在未填项"></span>` : '';
+    if (hasEmpty && pallet.products.length > 0) div.style.borderColor = "rgba(255,59,48,0.5)";
+
+    div.innerHTML = `<div class="pallet-header" onclick="togglePallet(${pallet.id})"><span style="display:flex;align-items:center; width:75%; overflow:hidden;">${redDotHtml}<span class="pallet-badge">${idx+1}/${pallets.length}</span><span class="pallet-summary">${summary || '待输入...'}</span></span><div class="pallet-actions"><button class="btn-icon" onclick="printSinglePallet(${pallet.id}); event.stopPropagation();" title="单独打印此托盘">🖨️</button> <button class="btn-remove-pallet" onclick="removePallet(${pallet.id},event)" title="删除托盘">✕</button></div></div><div class="pallet-body" id="pallet-body-${pallet.id}"><div id="products-${pallet.id}">${pallet.products.map((p,pi) => renderProductRow(pallet.id, pi, p)).join('')}</div><button class="btn-add-product" onclick="addProduct(${pallet.id})">＋ 增加规格明细</button></div>`;
+    container.appendChild(div);
+  });
+}
+
+function renderProductRow(palletId, pi, p) {
+  const wVal = (p.w !== undefined && p.w !== '') ? p.w : ''; const hVal = (p.h !== undefined && p.h !== '') ? p.h : ''; const tVal = (p.thickness !== undefined && p.thickness !== '') ? parseFloat(p.thickness).toFixed(2) : ''; const bVal = (p.boxes !== undefined && p.boxes !== '') ? p.boxes : ''; const pbVal = (p.pcsPerBox !== undefined && p.pcsPerBox !== '') ? p.pcsPerBox : ''; const pcsVal = (p.pcs !== undefined && p.pcs !== '') ? p.pcs : 0;
+  let recommendedPcs = getSmartPcsPerBox(p.w, p.h, p.thickness, false, null); let isCustomStyle = (p.isCustomPack && p.pcsPerBox != recommendedPcs) ? 'color: var(--step2-color); font-weight: 800;' : '';
+  return `
+    <div class="product-row-wrapper" id="prod-${palletId}-${pi}">
+      <div class="row-title"><span>Dimensions & Type</span></div>
+      <div class="product-row-line1">
+        <input class="font-mono" type="number" value="${wVal}" placeholder="W" oninput="updateProduct(${palletId},${pi},'w',this.value)">
+        <div class="sep">×</div>
+        <input class="font-mono" type="number" value="${hVal}" placeholder="H" oninput="updateProduct(${palletId},${pi},'h',this.value)">
+        <div class="sep">×</div>
+        <input class="font-mono" type="number" value="${tVal}" step="0.01" placeholder="T" oninput="updateProduct(${palletId},${pi},'thickness',this.value)">
+        <input class="font-mono" type="text" value="${p.type||'CTP'}" placeholder="Type" oninput="updateProduct(${palletId},${pi},'type',this.value)">
+      </div>
+      <div class="row-title"><span>Quantity</span></div>
+      <div class="product-row-line2">
+        <input class="font-mono" style="border-color:var(--border-hover);" type="number" value="${bVal}" placeholder="Boxes" oninput="updateProduct(${palletId},${pi},'boxes',this.value)">
+        <input class="font-mono" style="${isCustomStyle}" type="number" value="${pbVal}" placeholder="Pcs/Box" oninput="updateProduct(${palletId},${pi},'pcsPerBox',this.value)">
+        <div class="total-pcs-cell" title="Total Pcs">${pcsVal}</div>
+        <button class="btn-remove" onclick="removeProduct(${palletId},${pi})" tabindex="-1">✕</button>
+      </div>
+    </div>
+  `;
+}
+
+function togglePallet(id) { const p = pallets.find(p => p.id === id); if (p) { p.isOpen = !p.isOpen; renderPalletList(); triggerSave(); } }
+function addPallet() { let defaultT = getDefaults().thickness; pallets.push({ id: ++palletCount, isOpen: true, products: [{ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: 50, pcs: 0, type: getDefaults().productType, isCustomPack: false }] }); renderPalletList(); generateMarks(); triggerSave(); }
+function removePallet(id, e) { e.stopPropagation(); pallets = pallets.filter(p => p.id !== id); renderPalletList(); generateMarks(); triggerSave(); }
+function addProduct(id) { const p = pallets.find(p => p.id === id); if (p) { let defaultT = getDefaults().thickness; p.products.push({ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: 50, pcs: 0, type: getDefaults().productType, isCustomPack: false }); renderPalletList(); generateMarks(); triggerSave(); } }
+function removeProduct(id, pi) { const p = pallets.find(p => p.id === id); if (p && p.products.length > 1) { p.products.splice(pi, 1); renderPalletList(); generateMarks(); triggerSave(); } }
+
+function updateProduct(palletId, pi, field, value) {
+  const p = pallets.find(p => p.id === palletId);
+  if (p && p.products[pi]) {
+    const pr = p.products[pi];
+    if (field === 'type') { pr[field] = value.toUpperCase(); } else if (field === 'pcsPerBox') { pr.isCustomPack = true; pr[field] = parseInt(value) || 0; } else { let num = parseFloat(value); pr[field] = isNaN(num) ? '' : num; }
+    
+    if (field === 'thickness') { pr.thickness = normalizeThickness(pr.thickness); }
+    
+    if (field !== 'pcsPerBox') { 
+        pr.pcsPerBox = getSmartPcsPerBox(pr.w, pr.h, pr.thickness, pr.isCustomPack, pr.pcsPerBox); 
+    }
+    pr.pcs = (parseFloat(pr.boxes) || 0) * (parseFloat(pr.pcsPerBox) || 0);
+    
+    const wrapper = document.getElementById(`prod-${palletId}-${pi}`);
+    if(wrapper) {
+        const inputs = wrapper.querySelectorAll('input');
+        if(field !== 'pcsPerBox' && !pr.isCustomPack) { inputs[5].value = pr.pcsPerBox; }
+        wrapper.querySelector('.total-pcs-cell').innerText = pr.pcs;
+    }
+    generateMarks(); triggerSave();
+  }
+}
+
+// ==========================================
+// 🔍 独立模块：PO 脱水、日期、金额
+// ==========================================
+
+document.getElementById('poRawInput').addEventListener('paste', function(e) {
+  const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+  for (let index in items) { const item = items[index]; if (item.kind === 'file' && item.type.startsWith('image/')) { e.preventDefault(); const file = item.getAsFile(); performOCR(file); return; } }
+});
+const poInputArea = document.getElementById('poRawInput');
+poInputArea.addEventListener('dragover', e => { e.preventDefault(); poInputArea.style.borderColor = 'var(--step2-color)'; poInputArea.style.backgroundColor = 'rgba(0,122,255,0.05)'; });
+poInputArea.addEventListener('dragleave', e => { e.preventDefault(); poInputArea.style.borderColor = 'var(--border)'; poInputArea.style.backgroundColor = 'var(--input-bg)'; });
+poInputArea.addEventListener('drop', e => { e.preventDefault(); poInputArea.style.borderColor = 'var(--border)'; poInputArea.style.backgroundColor = 'var(--input-bg)'; if (e.dataTransfer.files.length > 0) { const file = e.dataTransfer.files[0]; if (file.type.startsWith('image/')) performOCR(file); } });
+
+function performOCR(file) {
+  if (typeof Tesseract === 'undefined') { showToast("OCR引擎尚未加载，请检查网络。", "error"); return; }
+  showToast("📸 正在识别图片文字...", "success"); const btn = document.getElementById('btnDehydrate'); btn.innerText = "⏳ 正在识别..."; btn.disabled = true;
+  Tesseract.recognize(file, 'eng', { logger: m => console.log(m) }).then(({ data: { text } }) => {
+      const inputEl = document.getElementById('poRawInput'); inputEl.value += (inputEl.value ? '\n\n' : '') + text;
+      showToast("✅ 图片文字识别完成！", "success"); btn.innerText = "执行脱水提取 (双向智能扫描)"; btn.disabled = false; dehydratePO();
+  }).catch(err => { showToast("❌ 图片识别失败。", "error"); btn.innerText = "执行脱水提取 (双向智能扫描)"; btn.disabled = false; });
+}
+
+let dehydrateResults = [];
+function dehydratePO() {
+  const text = document.getElementById('poRawInput').value; const tbody = document.querySelector('#poResultTable tbody'); tbody.innerHTML = ''; dehydrateResults = [];
+  const lines = text.split('\n'); let tPcs = 0; let tSqm = 0;
+  for (let line of lines) {
+    if (!line.trim()) continue;
+    const dimRegex = /(\d{3,})\s*[*xX×]\s*(\d{3,})\s*(?:[*xX×]\s*(\.\d+|\d+\.\d+|\d+))/i; const dimMatch = line.match(dimRegex); if (!dimMatch) continue;
+    const w = parseFloat(dimMatch[1]); const h = parseFloat(dimMatch[2]); const rawT = dimMatch[3]; const tNorm = normalizeThickness(rawT || '0.30'); 
+    let cleanLine = line.replace(dimMatch[0], ' '); cleanLine = cleanLine.replace(/\b\d{2}[\/\-]\d{2}[\/\-]\d{4}\b/g, ' '); cleanLine = cleanLine.replace(/\b(mm|cm)\b/gi, ' '); cleanLine = cleanLine.replace(/\b\d+\s*[*xX×]\s*\d+\b/g, ' '); cleanLine = cleanLine.replace(/\b\d{7,}\b/g, ' '); 
+    let isBox = /\b(bxs|box|boxes|ctns|carton|cartons)\b/i.test(cleanLine); let unitName = isBox ? "箱" : "张";
+    const numRegex = /\b(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)\b/g; let numbers = [...cleanLine.matchAll(numRegex)].map(m => parseFloat(m[1].replace(/,/g, ''))).filter(n => n > 0);
+    let bestQty = numbers.length > 0 ? Math.max(...numbers) : 0; 
+    if (bestQty > 0) {
+        let actualPcs = bestQty; if (isBox) actualPcs = bestQty * getSmartPcsPerBox(w, h, tNorm, false, null);
+        const sqm = (w * h * 0.000001 * actualPcs); tPcs += actualPcs; tSqm += sqm;
+        dehydrateResults.push({w, h, rawT, bestQty, unitName, actualPcs, sqm: sqm.toFixed(2)});
+        tbody.innerHTML += `<tr><td style="font-family:'JetBrains Mono';">${w}x${h}</td><td style="font-family:'JetBrains Mono';">${rawT}</td><td style="font-family:'JetBrains Mono'; text-align:right;">${bestQty.toLocaleString()} ${unitName}</td><td style="font-family:'JetBrains Mono'; text-align:right;">${actualPcs.toLocaleString()}</td><td style="font-family:'JetBrains Mono'; text-align:right; color:var(--step2-color);">${sqm.toFixed(2)}</td></tr>`;
+    }
+  }
+  document.getElementById('poTotalPcs').innerText = tPcs.toLocaleString(); document.getElementById('poTotalSqm').innerText = tSqm.toFixed(2);
+  if (dehydrateResults.length === 0) showToast("未识别到符合规范的数据。", "warning"); else showToast(`成功提取 ${dehydrateResults.length} 组精准数据！`, "success");
+}
+
+function downloadPOExcel() {
+  if (dehydrateResults.length === 0) return showToast("请先提取数据。", "error");
+  const dataForExcel = dehydrateResults.map((row, index) => ({ "序号": index + 1, "规格 (mm)": `${row.w} x ${row.h}`, "厚度 (Raw)": row.rawT, "原单数量": `${row.bestQty} ${row.unitName}`, "换算总张数 (PCS)": row.actualPcs, "总平米 (SQM)": parseFloat(row.sqm) }));
+  try { const ws = XLSX.utils.json_to_sheet(dataForExcel); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Order_Dehydrated"); XLSX.writeFile(wb, `PO_Extraction_${new Date().getTime()}.xlsx`); showToast("Excel 下载成功！", "success"); } catch (error) { showToast("导出失败", "error"); }
+}
+
+function setStartToNow() { const now = new Date(); const localNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0]; document.getElementById('dateStart').value = localNow; document.getElementById('dateEnd').value = localNow; }
+function setCalcDateToToday() { const now = new Date(); const localNow = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0]; document.getElementById('dateBase').value = localNow; }
+function calcDateDiff() { const sStr = document.getElementById('dateStart').value; const eStr = document.getElementById('dateEnd').value; if(!sStr || !eStr) return showToast("请填写日期", "error"); const diff = Math.floor((new Date(eStr) - new Date(sStr)) / (1000 * 60 * 60 * 24)); document.getElementById('diffRes').innerText = `${Math.abs(diff)} 天`; }
+function calcDateOffset() { const bStr = document.getElementById('dateBase').value; const offset = parseInt(document.getElementById('dateOffset').value); const unit = document.getElementById('dateUnit').value; if(!bStr || isNaN(offset)) return showToast("请填写数据", "error"); const b = new Date(bStr); if(unit === 'days') b.setDate(b.getDate() + offset); else if(unit === 'weeks') b.setDate(b.getDate() + (offset * 7)); else if(unit === 'months') b.setMonth(b.getMonth() + offset); document.getElementById('offsetRes').innerText = b.toISOString().split('T')[0]; }
+
+const wordsOnes = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
+const wordsTens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
+const wordsScales = ['', 'THOUSAND', 'MILLION', 'BILLION'];
+function numToWords(n) { if (n === 0) return ''; if (n < 20) return wordsOnes[n]; if (n < 100) return wordsTens[Math.floor(n / 10)] + (n % 10 !== 0 ? '-' + wordsOnes[n % 10] : ''); return wordsOnes[Math.floor(n / 100)] + ' HUNDRED' + (n % 100 !== 0 ? ' AND ' + numToWords(n % 100) : ''); }
+
+function convertAmount() {
+  const amtInput = document.getElementById('numAmount').value; const currCode = document.getElementById('currType').value; const amt = parseFloat(amtInput);
+  if(isNaN(amt)) { document.getElementById('amountResult').innerText = "- 等待输入 -"; return; }
+  const currNames = { 'USD': 'US DOLLARS', 'EUR': 'EURO', 'GBP': 'POUNDS STERLING', 'CNY': 'CHINESE YUAN', 'HKD': 'HONG KONG DOLLARS', 'JPY': 'JAPANESE YEN' };
+  const parts = amt.toFixed(2).split('.'); const intP = parseInt(parts[0]); const decP = parts[1] ? parseInt(parts[1]) : 0;
+  let intW = []; let num = intP; let scaleIdx = 0;
+  if (num === 0) { intW.push("ZERO"); } else { while (num > 0) { if (num % 1000 !== 0) intW.unshift(numToWords(num % 1000) + (scaleIdx > 0 ? " " + wordsScales[scaleIdx] : "")); num = Math.floor(num / 1000); scaleIdx++; } }
+  let finalStr = "SAY " + (currNames[currCode] || currCode) + " " + intW.join(" ").trim();
+  if (decP > 0) finalStr += " AND CENTS " + numToWords(decP);
+  finalStr += " ONLY";
+  document.getElementById('amountResult').innerText = finalStr.replace(/\s+/g, ' ');
+}
+function copyAmountResult() { const text = document.getElementById('amountResult').innerText; if (text === "- 等待输入 -" || !text) return showToast("没有可以复制的内容", "warning"); navigator.clipboard.writeText(text).then(() => showToast("✅ 复制成功！", "success")).catch(err => showToast("❌ 复制失败", "error")); }
+
+window.onload = init;
+</script>
 </body>
 </html>
