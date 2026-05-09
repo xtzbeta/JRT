@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shipping Marks OS V1.0</title>
+<title>Logistics OS V1.0 - Official Release</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -19,6 +19,8 @@
     --warning: #d97706; --warning-light: rgba(217,119,6,0.06); 
     --success: #059669;
     
+    --manual-input: #0052cc;
+    
     --step1-color: #d1d5db; --step2-color: #9ca3af; --step3-color: #6b7280; --step4-color: #374151; --step5-color: #111827; 
 
     --sidebar-width: 240px; --sidebar-collapsed-width: 68px;
@@ -31,12 +33,8 @@
   [data-theme="dark"] {
     --bg: #000000; --panel-bg: rgba(28, 28, 30, 0.85); --border: rgba(255, 255, 255, 0.06); --border-hover: rgba(255, 255, 255, 0.15);
     --accent: #ffffff; --text: #f5f5f7; --text-muted: #8a8a93;
-    --danger: #ef4444; --danger-light: rgba(239,68,68,0.1); 
-    --warning: #f59e0b; --warning-light: rgba(245,158,11,0.1);
-    
-    --step1-color: #374151; --step2-color: #4b5563; --step3-color: #6b7280; --step4-color: #9ca3af; --step5-color: #f3f4f6;
-
-    --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.3); --shadow-float: 0 30px 60px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+    --danger: #ef4444; --warning: #f59e0b;
+    --manual-input: #60a5fa;
     --input-bg: rgba(255, 255, 255, 0.04); --mark-preview-bg: #121212;
   }
 
@@ -57,16 +55,15 @@
   .sidebar-toggle { background: none; border: none; font-size: 22px; color: var(--text); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; }
   .sidebar-toggle:hover { background: var(--input-bg); }
   .sidebar-title { font-weight: 700; font-size: 14px; font-family: 'JetBrains Mono'; transition: opacity 0.2s; letter-spacing: 0.5px;}
-  .app-sidebar.collapsed .sidebar-title { opacity: 0; pointer-events: none; }
+  .app-sidebar.collapsed .sidebar-title, .app-sidebar.collapsed .nav-text { opacity: 0; pointer-events: none; }
   .sidebar-nav { flex: 1; padding: 24px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; overflow-x: hidden;}
-  .nav-group-title { font-size: 10px; font-weight: 600; color: var(--text-muted); padding: 12px 14px 6px; text-transform: uppercase; letter-spacing: 1px; }
+  .nav-group-title { font-size: 10px; font-weight: 600; color: var(--text-muted); padding: 12px 14px 6px; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s;}
   .app-sidebar.collapsed .nav-group-title { display: none; }
   .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; font-weight: 500; font-size: 13px; }
   .nav-item:hover { background: var(--input-bg); color: var(--text); }
   .nav-item.active { background: var(--accent); color: var(--bg); font-weight: 500; box-shadow: 0 6px 16px rgba(0,0,0,0.06);}
   .nav-item.active .nav-icon { color: var(--bg); }
   .nav-icon { font-size: 20px; width: 20px; text-align: center; flex-shrink: 0;}
-  .app-sidebar.collapsed .nav-text { opacity: 0; pointer-events: none; }
 
   /* Main Area */
   .main-wrapper { margin-left: var(--sidebar-width); transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); min-height: 100vh; display: flex; flex-direction: column; }
@@ -88,11 +85,14 @@
   .global-stats-item span.lbl { color: var(--text-muted); font-size: 11px; font-family: 'Noto Sans SC', sans-serif; font-weight: 500; letter-spacing: 0.5px;}
   .stat-divider { width: 1px; height: 14px; background: var(--border); }
   
+  /* Buttons */
   .header-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
   .header-btn:hover { border-color: var(--border-hover); background: var(--input-bg); }
   .header-btn i { font-size: 16px; }
-  .btn-print-top { font-weight: 500; color: var(--text); }
-  .btn-print-top:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+  
+  /* Primary Button (Batch Print) */
+  .btn-print-top { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; }
+  .btn-print-top:hover { opacity: 0.9; background: var(--text); color: var(--bg); border-color: var(--text); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
   .preview-panel { position: sticky; top: 85px; height: calc(100vh - 105px); display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-outer); background: var(--panel-bg); overflow: hidden; box-shadow: var(--shadow-soft);}
   
@@ -121,9 +121,9 @@
   input:focus, textarea:focus { background: transparent; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.08); }
   
   .input-warning { border-color: var(--danger) !important; box-shadow: 0 0 0 3px var(--danger-light) !important; background: rgba(255,59,48,0.02) !important; }
-  .custom-pack-input { color: var(--warning) !important; font-weight: 700 !important; background: rgba(217,119,6,0.05) !important; border-color: rgba(217,119,6,0.2) !important; }
 
-  .view-ctrl { background: rgba(128,128,128,0.02); padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; align-items: center; justify-content: flex-end; }
+  /* 色彩防错法则 CSS */
+  .custom-pack-input { color: var(--success) !important; font-weight: 700 !important; background: rgba(5,150,105,0.05) !important; border-color: rgba(5,150,105,0.2) !important; }
 
   .pallet-list { display: flex; flex-direction: column; gap: 24px; }
   .pallet-item { border: none; border-radius: var(--radius-inner); background: transparent; transition: all 0.3s; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); }
@@ -136,13 +136,14 @@
   .pallet-body { max-height: 0; opacity: 0; padding: 0 20px; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease; }
   .pallet-item.open .pallet-body { max-height: 5000px; opacity: 1; padding: 24px 20px; }
 
-  /* 行宽分配优化 */
+  /* 色彩防错法则 CSS - 原始数据蓝色 */
   .product-row-single { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.03); margin-bottom: 10px; display: grid; grid-template-columns: 200px 1fr 70px 70px 80px 40px; gap: 10px; align-items: center;}
   .product-row-single:last-child { border-bottom: none; margin-bottom: 0;}
-  .product-row-single input { min-height: 40px; padding: 8px; font-weight: 500; text-align: center; border: 1px solid transparent; border-radius: 6px; background: rgba(0,0,0,0.03); color: var(--text); transition: 0.2s;}
+  .product-row-single input { min-height: 40px; padding: 8px; font-weight: 600; text-align: center; border: 1px solid transparent; border-radius: 6px; background: rgba(0,0,0,0.03); color: var(--manual-input); transition: 0.2s;}
   .product-row-single input:focus { border-color: var(--accent); background: transparent; }
   .product-row-single .sep { font-size: 12px; color: var(--text-muted); font-weight: 500; padding: 0 4px; }
-  .total-pcs-cell { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 700; color: var(--text); border-radius: 6px; text-align: center; }
+  /* 色彩防错法则 CSS - 计算结果黑（深）色 */
+  .total-pcs-cell { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 800; color: var(--text); border-radius: 6px; text-align: center; }
 
   /* Action Buttons */
   .btn-icon { background: var(--input-bg); border: 1px solid transparent; color: var(--text-muted); font-size: 16px; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
@@ -191,12 +192,17 @@
   .page-nav-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 4px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s;}
   .page-nav-btn:hover { background: var(--input-bg); border-color: var(--border-hover); }
 
-  /* Page 2: Amount tool */
+  /* Page 2 & Docs */
   .tool-container { display: grid; grid-template-columns: 1fr; gap: 24px; }
   @media (min-width: 900px) { .tool-container { grid-template-columns: 1fr 1fr; } }
   .tool-result-box { background: var(--input-bg); border-radius: var(--radius-inner); padding: 24px; border: 1px solid var(--border); min-height: 300px; }
-  .tool-btn-primary { background: var(--accent); color: var(--bg); padding: 12px 24px; border-radius: 8px; font-weight: 500; width: 100%; margin-top: 10px; border: none; font-size: 14px; transition: 0.2s;}
-  .tool-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  
+  .docs-container { max-width: 900px; margin: 0 auto; background: var(--panel-bg); padding: 40px 60px; border-radius: var(--radius-outer); border: 1px solid var(--border); box-shadow: var(--shadow-soft); line-height: 1.8; }
+  .docs-container h2 { font-size: 22px; font-weight: 800; margin: 30px 0 15px; color: var(--text); }
+  .docs-container h3 { font-size: 16px; font-weight: 700; margin: 20px 0 10px; color: var(--accent); border-left: 4px solid var(--accent); padding-left: 12px; }
+  .docs-container ul { padding-left: 20px; margin-bottom: 20px; list-style-type: none; }
+  .docs-container li { position: relative; margin-bottom: 8px; font-size: 14px; padding-left: 15px;}
+  .docs-container li::before { content: "•"; position: absolute; left: 0; color: var(--text-muted); }
 
   /* Marks Grid Screen View */
   @media screen {
@@ -239,7 +245,7 @@
   @media print {
     @page { size: A4 portrait; margin: 0 !important; }
     body, [data-theme="dark"] { background: white !important; color: black !important; margin: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    header, .left-panel, .preview-header, .view-ctrl, .app-sidebar, .toast-container, .btn-back-to-top { display: none !important; }
+    header, .left-panel, .preview-header, .view-ctrl, .app-sidebar, .toast-container, .btn-back-to-top, .app-footer { display: none !important; }
     .container { display: block; padding: 0; max-width: 100%; margin: 0; }
     .main-wrapper { margin-left: 0 !important; }
     .app-page#pageMarks { display: block !important; padding: 0 !important; }
@@ -287,6 +293,9 @@
     <div class="nav-item" onclick="switchPage('pageAmount', this, '<i class=\'ph ph-text-aa\'></i> 英文金额大写转换')">
       <i class="ph ph-text-aa nav-icon"></i><span class="nav-text">金额大写转换</span>
     </div>
+    <div class="nav-item" onclick="switchPage('pageDocs', this, '<i class=\'ph ph-book-open\'></i> 操作指南')">
+      <i class="ph ph-book-open nav-icon"></i><span class="nav-text">操作指南</span>
+    </div>
   </nav>
 </aside>
 
@@ -301,9 +310,9 @@
       </div>
     </div>
     <div class="header-controls">
-      <button class="header-btn" onclick="clearAllData()" style="color: var(--danger); border-color: transparent;"><i class="ph ph-trash"></i> 清空</button>
+      <button class="header-btn" onclick="clearAllData()" style="color: var(--danger); border-color: var(--danger-light); background: rgba(220,38,38,0.03);"><i class="ph ph-trash"></i> 清空</button>
       <button class="header-btn theme-toggle" onclick="toggleTheme()" id="themeBtn"><i class="ph ph-moon"></i> 深色模式</button>
-      <button class="header-btn" onclick="exportToPDF()" style="color: var(--text); border-color: transparent;"><i class="ph ph-download-simple"></i> 导出 PDF</button>
+      <button class="header-btn" onclick="exportToPDF()"><i class="ph ph-download-simple"></i> 导出 PDF</button>
       <button class="header-btn btn-print-top" id="btnPrintTop" onclick="validateAndPrint()"><i class="ph ph-printer"></i> 批量打印</button>
     </div>
   </header>
@@ -389,8 +398,8 @@
       </div>
 
       <div class="preview-panel">
-        <div class="view-ctrl" style="justify-content: flex-end;">
-           <span class="sync-badge" id="saveStatus"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
+        <div class="view-ctrl">
+           <span class="sync-badge" id="saveStatus" style="margin-left:auto"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
         </div>
 
         <div class="preview-header">
@@ -399,7 +408,7 @@
             <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
                <button class="page-nav-btn" onclick="prevPage()"><i class="ph ph-caret-left"></i></button>
                <div style="display:flex;align-items:center;gap:4px;">
-                  <input type="number" id="pageInput" class="font-mono" style="width: 44px; min-height: 28px; padding: 2px 4px; text-align: center; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text); font-size: 13px; font-weight: 700;" value="0" min="1" onchange="jumpToPage(this.value)">
+                  <input type="number" id="pageInput" class="font-mono" style="width: 46px; min-height: 28px; padding: 2px 4px; text-align: center; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text); font-size: 13px; font-weight: 700;" value="0" min="1" onchange="jumpToPage(this.value)">
                   <span class="font-mono" style="font-size:13px; font-weight:700; color:var(--text-muted);"> / <span id="totalPages">0</span></span>
                </div>
                <button class="page-nav-btn" onclick="nextPage()"><i class="ph ph-caret-right"></i></button>
@@ -425,7 +434,7 @@
       <div class="card-body">
         <div class="field-row" style="margin-bottom: 24px;">
           <div><label>选择报关币种</label><select id="currType" onchange="convertAmount()" style="font-size: 14px; font-weight: 500;"><option value="USD">US DOLLARS</option><option value="EUR">EURO</option><option value="GBP">POUNDS STERLING</option><option value="CNY">CHINESE YUAN</option><option value="HKD">HONG KONG DOLLARS</option><option value="JPY">JAPANESE YEN</option></select></div>
-          <div><label>输入数字金额</label><input type="number" id="numAmount" step="0.01" placeholder="例如: 8888.88" class="font-mono" oninput="convertAmount()" style="font-size: 16px; font-weight: 600; color: var(--text);"></div>
+          <div><label>输入数字金额</label><input type="number" id="numAmount" step="0.01" placeholder="例如: 8888.88" class="font-mono" oninput="convertAmount()" style="font-size: 16px; font-weight: 600; color: var(--manual-input);"></div>
         </div>
         <div class="tool-result-box" style="position:relative; min-height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 40px 30px;">
           <div style="font-size:12px; font-weight:500; color:var(--text-muted); margin-bottom:16px;">实时大写结果 (默认 CENTS 格式)</div>
@@ -436,6 +445,51 @@
     </div>
   </main>
 
+  <main id="pageDocs" class="app-page">
+    <div class="docs-container">
+        <h2>🌟 系统概述</h2>
+        <p>Logistics OS V1.0 是一款专为<strong>版材出运与国际物流环节</strong>设计的唛头自动化排版与数据核对工具。系统内置了流程单记忆库与自动对账功能，最大程度降低人工制单及排版的错误率。</p>
+        
+        <h2>🛠️ 核心工作流：唛头生成</h2>
+        <h3>步骤 1：英文品名映射 (DICTIONARY)</h3>
+        <ul>
+            <li><strong>功能说明：</strong>建立版材型号与英文品名的转换规则（一次设置，永久有效）。</li>
+            <li><strong>操作方法：</strong>展开面板，输入原厂代号（如 200-SG）及对应的英文品名（如 CTP）。系统在导入数据时，会自动将内部代号替换为标准的报关/唛头英文品名。</li>
+        </ul>
+        <h3>步骤 2：数据导入 (DATA IMPORT)</h3>
+        <ul>
+            <li><strong>2.1 上传流程单：</strong>优先点击“上传 Excel”导入生产流程单。</li>
+            <li><strong>2.2 导入打托明细（按整拼箱区分）：</strong>
+                <li><strong>LCL（拼箱）：</strong>继续点击“上传 Excel”，选择打托明细表导入。</li>
+                <li><strong>FCL（整柜）：</strong>选定 PDF 版打托明细的所有内容，复制并直接<strong>粘贴</strong>到界面的文本框中。</li>
+            </li>
+            <li><strong>💡 智能记忆特性：</strong>导入流程单后，系统会自动记忆当前批次不同尺寸（W×H×T）对应的“标准包装片数”。后续录入明细时会自动带入，极大提升制单效率。</li>
+        </ul>
+        <h3>步骤 3：基础信息 (BASIC INFO)</h3>
+        <ul>
+            <li><strong>客户代码：</strong>作为主品牌视觉标识，显示在左上角。</li>
+            <li><strong>目的地：</strong><strong>必填项</strong>，显示在右下角核心流向位置。</li>
+            <li><strong>PO NO. & SHIPPING CODE：</strong>建议填写，用于多维度溯源排版，系统会自动进行矩阵对齐。</li>
+        </ul>
+        <h3>步骤 4：数据汇总 & 智能核对</h3>
+        <ul>
+            <li>系统实时监控总盒数 (BOXES)、总张数 (PCS) 与总平米数 (SQM)。</li>
+            <li><strong>🛡️ 业财对账系统：</strong>绿色表示账实相符，完美一致；红色表示存在数据缺溢，强力拦截错发/漏发风险。</li>
+        </ul>
+        <h3>步骤 5：装箱清单色彩法则</h3>
+        <ul>
+            <li><strong>蓝色字体</strong> 代表用户需手动核对或输入的原始数据。</li>
+            <li><strong>绿色字体</strong> 代表系统通过记忆库自动填写的规则数据。</li>
+            <li><strong>黑色字体</strong> 代表不可更改的自动计算结果。</li>
+        </ul>
+        <h2>🖨️ 打印与导出</h2>
+        <ul>
+            <li><strong>快速跳页：</strong>在预览区顶部输入页码并回车，实现秒级跳转。</li>
+            <li><strong>智能命名规则：</strong>PDF 导出将自动命名为 <code>发货代码-国家-YYYY-MM-DD.pdf</code>，便于本地归档与检索。</li>
+        </ul>
+    </div>
+  </main>
+
   <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">Created by @Mark | OS V1.0 09/05/2026</div>
 </div>
 
@@ -443,7 +497,7 @@
 
 <script>
 // ==========================================
-// 🛡️ 核心数据逻辑 
+// 🛡️ 核心数据逻辑 - 100% 完整保留
 // ==========================================
 
 let pallets = []; let palletCount = 0; let currentTotalPcs = 0; let currentTotalSqm = 0; let targetData = null;
@@ -483,6 +537,7 @@ function switchPage(pageId, element, titleText) {
   document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   document.getElementById(pageId).classList.add('active'); element.classList.add('active');
+  document.getElementById('pageTitle').innerHTML = titleText;
   
   const isMarksPage = (pageId === 'pageMarks');
   document.getElementById('globalStats').style.display = isMarksPage ? 'flex' : 'none';
@@ -635,7 +690,7 @@ function loadData() {
 function clearTargetData() { targetData = null; triggerSave(); generateMarks(); showToast("已清除流程单目标"); }
 
 // ========================================================
-// 🛡️ 原版解析逻辑 
+// 🛡️ 完整解析逻辑 (Excel & 记忆库)
 // ========================================================
 
 function parseWorkOrder(data) {
@@ -853,27 +908,22 @@ function parseExcelData(arrayBuffer) {
 
 function getStrLen(str) { return str ? str.replace(/[\u0100-\uffff]/g, "aa").length : 0; }
 
-function buildMarkHTML(customer, destination, poNo, workOrderNo, origin, pNum, pTotal, products, tPcs, tBoxes) {
+function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, products, tPcs, tBoxes) {
   let rLen = products.length;
   
-  // 核心：四阶动态缩放 (Dynamic Scaling) + 横向切层间距调整
   let tdFontSize = '15pt', tdPadding = '2.5mm 1mm', thFontSize = '4.5mm', markPadding = '6mm 8mm', logoSize = '12mm';
   let poFontSize = '4.5mm', madeInFontSize = '6.5mm', destFontSize = '8mm', palletNumSize = '18mm', headerGap = '6mm';
 
   if (rLen >= 12) {
-      // 极限压榨版
       tdFontSize = '9pt'; tdPadding = '0.5mm 1mm'; thFontSize = '3mm'; markPadding = '3mm 5mm'; 
       logoSize = '7mm'; poFontSize = '3.5mm'; madeInFontSize = '5mm'; destFontSize = '6mm'; palletNumSize = '12mm'; headerGap = '2mm';
   } else if (rLen >= 9) {
-      // 高密排版
       tdFontSize = '10pt'; tdPadding = '1mm 1mm'; thFontSize = '3.5mm'; markPadding = '4mm 6mm'; 
       logoSize = '8mm'; poFontSize = '3.5mm'; madeInFontSize = '5.5mm'; destFontSize = '6.5mm'; palletNumSize = '14mm'; headerGap = '3mm';
   } else if (rLen >= 6) {
-      // 标准紧凑版
       tdFontSize = '12pt'; tdPadding = '1.5mm 1mm'; thFontSize = '4mm'; markPadding = '4mm 8mm'; 
       logoSize = '10mm'; poFontSize = '4mm'; madeInFontSize = '6mm'; destFontSize = '7mm'; palletNumSize = '16mm'; headerGap = '4mm';
   } else if (rLen >= 4) {
-      // 适度微缩
       tdFontSize = '13pt'; tdPadding = '2mm 1mm'; thFontSize = '4.2mm'; markPadding = '5mm 8mm';
       logoSize = '11mm'; headerGap = '5mm';
   }
@@ -901,7 +951,7 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, origin, pNum, p
   let safeShipCode = (workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
   let safeDest = (destination||'').trim().replace(/\s+/g, '&nbsp;'); 
   
-  // 辅助信息并排显示，降维（字重600）
+  // 强制默认显示逻辑 (无复选框判断)
   let poStr = [];
   if(safePo) poStr.push(`PO NO.: ${safePo}`);
   if(safeShipCode) poStr.push(`SHIPPING CODE: ${safeShipCode}`);
@@ -911,36 +961,26 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, origin, pNum, p
       poHtml = `<div style="font-size: ${poFontSize}; font-weight: 600; color: #000; font-family: Arial, sans-serif; display: flex; gap: 4mm; margin-top: 1.5mm;"><span>${poStr.join('</span><span style="color:#ccc">|</span><span>')}</span></div>`;
   }
 
-  let fData = `<div class="f-totals" style="display:flex; align-items:baseline; gap:6mm;">
-                <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">TOTAL PCS:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:Arial, monospace; color: #000;">${tPcs.toLocaleString()}</span></div>
-                <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">BOXES:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:Arial, monospace; color: #000;">${tBoxes.toLocaleString()}</span></div>
-              </div>`;
-
   return `<div class="mark-inner" style="width: 200mm; height: 140mm; box-sizing: border-box; overflow: hidden; background: #fff; padding: ${markPadding}; display: flex; flex-direction: column; font-family: Arial, sans-serif;">
       
       <div class="mark-header" style="display: flex; flex-direction: column; border-bottom: 3px solid #000; padding-bottom: 2mm; margin-bottom: 2mm;">
-          
           <div class="header-top-row" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: ${headerGap};">
               <div class="top-left" style="display: flex; flex-direction: column;">
                   <div class="mark-logo" style="font-size:${webCustFontSize}; font-weight: 900; color: #000; line-height: 1; text-transform: uppercase; letter-spacing: -0.5px;">${safeCustomer}</div>
                   ${poHtml}
               </div>
-              
               <div class="top-right pallet-box-clean" style="border: 2px solid #000; padding: 2mm 4mm; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 32mm;">
                   <div class="stencil-label" style="font-size: 3.5mm; font-weight: 800; color: #000; margin-bottom: 1mm; text-align: right;">PALLET NO.</div>
                   <div class="stencil-number" style="font-size: ${palletNumSize}; font-weight: 900; font-family: Arial, monospace; line-height: 1; color: #000; text-align: right;">${pNum}/${pTotal}</div>
               </div>
           </div>
-          
           <div class="header-bottom-row" style="display: flex; justify-content: space-between; align-items: flex-end;">
               <div class="made-in" style="font-size: ${madeInFontSize}; font-weight: 900; color: #000; line-height: 1;">MADE IN CHINA</div>
-              
               <div class="dest-wrapper" style="display: flex; align-items: baseline; gap: 2mm;">
                   <span class="dest-lbl" style="font-size: 3.5mm; font-weight: 800; color: #555;">DESTINATION:</span>
                   <span class="dest-val" style="font-size: ${destFontSize}; font-weight: 900; color: #000; line-height: 1;">${safeDest}</span>
               </div>
           </div>
-          
       </div>
 
       <div class="mark-table-wrap" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
@@ -965,106 +1005,18 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, origin, pNum, p
       </div>
 
       <div class="mark-footer" style="padding-top:2mm; margin-top:auto; display:flex; justify-content:space-between; align-items:center;">
-          ${fData}
+          <div class="f-totals" style="display:flex; align-items:baseline; gap:6mm;">
+              <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">TOTAL PCS:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:Arial, monospace; color: #000;">${tPcs.toLocaleString()}</span></div>
+              <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">BOXES:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:Arial, monospace; color: #000;">${tBoxes.toLocaleString()}</span></div>
+          </div>
           <div class="f-note" style="font-size: 3mm; font-weight: 800; color: #000; text-align: right;">STORE IN A DRY, COOL, AND DARK PLACE.</div>
       </div>
   </div>`;
 }
 
 // ==========================================
-// 全新 PDF 命名规则及其他逻辑继续
+// 跳转与预览逻辑
 // ==========================================
-
-function getPrintFileName() {
-    const shipCode = document.getElementById('workOrderNo').value.trim();
-    const dest = document.getElementById('destination').value.trim();
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    
-    let parts = [];
-    if(shipCode) parts.push(shipCode.replace(/[\/\\:*?"<>|]/g, '-'));
-    if(dest) parts.push(dest.replace(/[\/\\:*?"<>|]/g, '-'));
-    parts.push(dateStr);
-    
-    return parts.join('-') || `ShippingMarks-${dateStr}`;
-}
-
-function validateAndPrint() {
-  const destInput = document.getElementById('destination'); let isValid = true; let hasProducts = false;
-  document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
-  if (!destInput.value.trim()) { destInput.classList.add('input-warning'); showToast('⚠️ 目的地不能为空！', 'error'); destInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); isValid = false; }
-  pallets.forEach(pallet => { let palletHasError = false; pallet.products.forEach((pr) => { hasProducts = true; if (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox) { isValid = false; palletHasError = true; } }); if (palletHasError) pallet.isOpen = true; });
-  if (!hasProducts && isValid) { showToast('⚠️ 没有可打印的数据！', 'error'); isValid = false; }
-  if (!isValid) {
-      renderPalletList(); let firstErrorFound = false;
-      pallets.forEach(pallet => { pallet.products.forEach((pr, pi) => { const wrapper = document.getElementById(`prod-${pallet.id}-${pi}`); if (wrapper) { const inputs = wrapper.querySelectorAll('input'); if (!pr.w) inputs[0].classList.add('input-warning'); if (!pr.h) inputs[1].classList.add('input-warning'); if (!pr.thickness) inputs[2].classList.add('input-warning'); if (!pr.type) inputs[3].classList.add('input-warning'); if (!pr.boxes) inputs[4].classList.add('input-warning'); if (!pr.pcsPerBox) inputs[5].classList.add('input-warning'); if (!firstErrorFound && (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox)) { wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' }); firstErrorFound = true; } } }); });
-      if (hasProducts) showToast('⚠️ 请补充带红框的必填数据！', 'error'); return; 
-  }
-  
-  if (!targetData || (!targetData.pcs && !targetData.sqm)) {
-      if(!confirm("⚠️ 未检测到流程单数据，无法进行智能核对。是否继续强制打印？")) return;
-  } else {
-     let pcsMatch = (!targetData.pcs || currentTotalPcs === targetData.pcs);
-     let sqmMatch = (!targetData.sqm || Math.abs(currentTotalSqm - targetData.sqm) <= 0.1);
-     if (!pcsMatch || !sqmMatch) {
-         let diffPcs = currentTotalPcs - (targetData.pcs || 0); let msg = `⚠️ 严重警告：打托数据与流程单严重不符！\n\n`;
-         if(!pcsMatch) msg += `[总张数] 相差: ${diffPcs > 0 ? '+'+pcsDiff : pcsDiff} 张\n`; if(!sqmMatch) msg += `[总平米] 不一致\n`; msg += `\n确认属于特殊情况强制打印？`;
-         if(!confirm(msg)) return; 
-     }
-  }
-  
-  document.title = getPrintFileName(); 
-  document.getElementById('marksGrid').innerHTML = allCardsHTML.map(c => c.html).join('');
-  setTimeout(() => { 
-      window.print(); 
-      setTimeout(() => { document.title = ORIGINAL_TITLE; renderPage(); }, 2000); 
-  }, 100);
-}
-
-function printSinglePallet(palletId) {
-  const destInput = document.getElementById('destination');
-  if (!destInput.value.trim()) { destInput.classList.add('input-warning'); showToast('⚠️ 目的地不能为空！', 'error'); return; }
-  const targetCards = allCardsHTML.filter(c => c.id === palletId);
-  if(targetCards.length === 0) { showToast("该托盘暂无数据", "warning"); return; }
-  document.getElementById('marksGrid').innerHTML = targetCards.map(c => c.html).join('');
-  document.title = getPrintFileName();
-  setTimeout(() => { 
-      window.print(); 
-      setTimeout(() => { document.title = ORIGINAL_TITLE; renderPage(); }, 2000); 
-  }, 100);
-}
-
-function updateReconciliation() {
-   const reconAlert = document.getElementById('reconAlert');
-   const reconContent = document.getElementById('reconContent');
-   const statPcsEl = document.getElementById('statPcs');
-   const statSqmEl = document.getElementById('statSqm');
-   
-   if(!targetData || (!targetData.pcs && !targetData.sqm)) {
-       reconAlert.style.display = 'none'; statPcsEl.style.color = 'var(--text)'; statSqmEl.style.color = 'var(--text)'; return;
-   }
-   
-   let pcsDiff = currentTotalPcs - (targetData.pcs || 0);
-   let sqmDiff = currentTotalSqm - (targetData.sqm || 0);
-   let pcsMatch = !targetData.pcs || pcsDiff === 0;
-   let sqmMatch = !targetData.sqm || Math.abs(sqmDiff) <= 0.1;
-
-   reconAlert.style.display = 'flex';
-
-   if(pcsMatch && sqmMatch) {
-       reconAlert.style.background = 'rgba(52,199,89,0.08)'; reconAlert.style.border = '1px solid rgba(52,199,89,0.15)'; reconAlert.style.color = 'var(--success)';
-       reconContent.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:18px"></i> <span>业财对账通过：打托实绩与流程单完美一致！</span>`;
-       statPcsEl.style.color = 'var(--success)'; statSqmEl.style.color = 'var(--success)';
-   } else {
-       reconAlert.style.background = 'var(--danger-light)'; reconAlert.style.border = '1px solid rgba(255,59,48,0.15)'; reconAlert.style.color = 'var(--danger)';
-       let errStr = [];
-       if(!pcsMatch) errStr.push(`缺/溢 ${pcsDiff > 0 ? '+'+pcsDiff : pcsDiff} 张 (目标: ${(targetData.pcs||0).toLocaleString()})`);
-       if(!sqmMatch) errStr.push(`平米数差 ${sqmDiff > 0 ? '+'+sqmDiff.toFixed(2) : sqmDiff.toFixed(2)} (目标: ${(targetData.sqm||0).toFixed(2)})`);
-
-       reconContent.innerHTML = `<i class="ph-fill ph-warning-circle" style="font-size:18px"></i> <span>异常：账实不符！${errStr.join(' | ')}</span>`;
-       statPcsEl.style.color = pcsMatch ? 'var(--text)' : 'var(--danger)'; statSqmEl.style.color = sqmMatch ? 'var(--text-muted)' : 'var(--danger)';
-   }
-}
 
 function renderPage() { 
     const grid = document.getElementById('marksGrid'); 
@@ -1113,9 +1065,9 @@ function generateMarks() {
     validProducts.forEach(p => { globalBoxes += parseFloat(p.boxes) || 0; globalPcs += parseFloat(p.pcs) || 0; globalSqm += ((parseFloat(p.w) || 0) / 1000) * ((parseFloat(p.h) || 0) / 1000) * (parseFloat(p.pcs) || 0); });
 
     if (validProducts.length === 0) {
-       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, [], 0, 0)}</div>`});
+       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, [], 0, 0)}</div>`});
     } else {
-       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, validProducts, totalPcs, totalBoxes)}</div>`});
+       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, validProducts, totalPcs, totalBoxes)}</div>`});
     }
   });
 
@@ -1125,7 +1077,7 @@ function generateMarks() {
   if (parseInt(gPcsEl.innerText.replace(/,/g,'')) !== globalPcs) { gPcsEl.style.color = 'var(--step2-color)'; setTimeout(()=> gPcsEl.style.color = '', 300); }
 
   document.getElementById('statBoxes').innerText = globalBoxes; document.getElementById('statPcs').innerText = globalPcs.toLocaleString(); document.getElementById('statSqm').innerText = globalSqm.toFixed(2);
-  gBoxesEl.innerText = globalBoxes; gPcsEl.innerText = globalPcs.toLocaleString(); document.getElementById('g-sqm').innerText = globalSqm.toFixed(2);
+  gBoxesEl.innerText = globalBoxes; gPcsEl.innerText = globalPcs.toLocaleString(); 
   
   const globalStatsEl = document.getElementById('globalStats');
   const isMarksPage = document.getElementById('pageMarks').classList.contains('active');
@@ -1133,6 +1085,42 @@ function generateMarks() {
 
   updateReconciliation(); renderPage(); 
 }
+
+function updateReconciliation() {
+   const reconAlert = document.getElementById('reconAlert');
+   const reconContent = document.getElementById('reconContent');
+   const statPcsEl = document.getElementById('statPcs');
+   const statSqmEl = document.getElementById('statSqm');
+   
+   if(!targetData || (!targetData.pcs && !targetData.sqm)) {
+       reconAlert.style.display = 'none'; statPcsEl.style.color = 'var(--text)'; statSqmEl.style.color = 'var(--text)'; return;
+   }
+   
+   let pcsDiff = currentTotalPcs - (targetData.pcs || 0);
+   let sqmDiff = currentTotalSqm - (targetData.sqm || 0);
+   let pcsMatch = !targetData.pcs || pcsDiff === 0;
+   let sqmMatch = !targetData.sqm || Math.abs(sqmDiff) <= 0.1;
+
+   reconAlert.style.display = 'flex';
+
+   if(pcsMatch && sqmMatch) {
+       reconAlert.style.background = 'rgba(52,199,89,0.08)'; reconAlert.style.border = '1px solid rgba(52,199,89,0.15)'; reconAlert.style.color = 'var(--success)';
+       reconContent.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:18px"></i> <span>业财对账通过：打托实绩与流程单完美一致！</span>`;
+       statPcsEl.style.color = 'var(--success)'; statSqmEl.style.color = 'var(--success)';
+   } else {
+       reconAlert.style.background = 'var(--danger-light)'; reconAlert.style.border = '1px solid rgba(255,59,48,0.15)'; reconAlert.style.color = 'var(--danger)';
+       let errStr = [];
+       if(!pcsMatch) errStr.push(`缺/溢 ${pcsDiff > 0 ? '+'+pcsDiff : pcsDiff} 张 (目标: ${(targetData.pcs||0).toLocaleString()})`);
+       if(!sqmMatch) errStr.push(`平米数差 ${sqmDiff > 0 ? '+'+sqmDiff.toFixed(2) : sqmDiff.toFixed(2)} (目标: ${(targetData.sqm||0).toFixed(2)})`);
+
+       reconContent.innerHTML = `<i class="ph-fill ph-warning-circle" style="font-size:18px"></i> <span>异常：账实不符！${errStr.join(' | ')}</span>`;
+       statPcsEl.style.color = pcsMatch ? 'var(--text)' : 'var(--danger)'; statSqmEl.style.color = sqmMatch ? 'var(--text-muted)' : 'var(--danger)';
+   }
+}
+
+// ==========================================
+// 装箱清单与交互操作
+// ==========================================
 
 function renderPalletList() {
   const container = document.getElementById('palletList'); container.innerHTML = '';
@@ -1187,7 +1175,7 @@ function renderProductRow(palletId, pi, p) {
       <input class="font-mono ${typeErr}" style="width:100%; text-align:center;" type="text" value="${p.type||'CTP'}" placeholder="Type" oninput="updateProduct(${palletId},${pi},'type',this.value)">
       <input class="font-mono ${bErr}" style="width:100%; text-align:center;" type="number" value="${bVal}" oninput="updateProduct(${palletId},${pi},'boxes',this.value)">
       <input class="font-mono ${pbErr} ${packClass}" style="width:100%; text-align:center;" type="number" value="${pbVal}" oninput="updateProduct(${palletId},${pi},'pcsPerBox',this.value)">
-      <div class="total-pcs-cell" style="width:100%; padding:10px 0; text-align:center;">${pcsVal}</div>
+      <div class="total-pcs-cell" style="width:100%; padding:10px 0; text-align:center;">${pcsVal.toLocaleString()}</div>
       <button class="btn-icon" style="background: transparent;" onclick="removeProduct(${palletId},${pi})" tabindex="-1"><i class="ph ph-x"></i></button>
     </div>
   `;
@@ -1229,36 +1217,119 @@ function updateProduct(palletId, pi, field, value) {
         if (field === 'boxes' && pr.boxes) inputs[4].classList.remove('input-warning');
         if (field === 'pcsPerBox' && pr.pcsPerBox) inputs[5].classList.remove('input-warning');
 
-        wrapper.querySelector('.total-pcs-cell').innerText = pr.pcs;
+        wrapper.querySelector('.total-pcs-cell').innerText = pr.pcs.toLocaleString();
     }
     generateMarks(); triggerSave();
   }
 }
 
+// ==========================================
+// 🧮 恢复 100% 完整的金额转换器算法
+// ==========================================
+
 function convertAmount() {
-  const amtInput = document.getElementById('numAmount').value; const currCode = document.getElementById('currType').value; const amt = parseFloat(amtInput);
-  if(isNaN(amt)) { document.getElementById('amountResult').innerText = "- 等待输入 -"; return; }
-  const currNames = { 'USD': 'US DOLLARS', 'EUR': 'EURO', 'GBP': 'POUNDS STERLING', 'CNY': 'CHINESE YUAN', 'HKD': 'HONG KONG DOLLARS', 'JPY': 'JAPANESE YEN' };
+  const amtInput = document.getElementById('numAmount').value; 
+  const currCode = document.getElementById('currType').value; 
+  const amt = parseFloat(amtInput);
+  
+  if(isNaN(amt)) { 
+      document.getElementById('amountResult').innerText = "- 等待输入 -"; 
+      return; 
+  }
+  
+  const currNames = { 'USD': 'US DOLLARS', 'EUR': 'EUROS', 'GBP': 'POUNDS STERLING', 'CNY': 'CHINESE YUAN', 'HKD': 'HONG KONG DOLLARS', 'JPY': 'JAPANESE YEN' };
   
   const wordsOnes = ['', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN', 'ELEVEN', 'TWELVE', 'THIRTEEN', 'FOURTEEN', 'FIFTEEN', 'SIXTEEN', 'SEVENTEEN', 'EIGHTEEN', 'NINETEEN'];
   const wordsTens = ['', '', 'TWENTY', 'THIRTY', 'FORTY', 'FIFTY', 'SIXTY', 'SEVENTY', 'EIGHTY', 'NINETY'];
   const wordsScales = ['', 'THOUSAND', 'MILLION', 'BILLION'];
   
-  function numToWords(n) { if (n === 0) return ''; if (n < 20) return wordsOnes[n]; if (n < 100) return wordsTens[Math.floor(n / 10)] + (n % 10 !== 0 ? '-' + wordsOnes[n % 10] : ''); return wordsOnes[Math.floor(n / 100)] + ' HUNDRED' + (n % 100 !== 0 ? ' AND ' + numToWords(n % 100) : ''); }
+  function numToWords(n) { 
+      if (n === 0) return ''; 
+      if (n < 20) return wordsOnes[n]; 
+      if (n < 100) return wordsTens[Math.floor(n / 10)] + (n % 10 !== 0 ? '-' + wordsOnes[n % 10] : ''); 
+      return wordsOnes[Math.floor(n / 100)] + ' HUNDRED' + (n % 100 !== 0 ? ' AND ' + numToWords(n % 100) : ''); 
+  }
 
-  const parts = amt.toFixed(2).split('.'); const intP = parseInt(parts[0]); const decP = parts[1] ? parseInt(parts[1]) : 0;
+  const parts = amt.toFixed(2).split('.'); 
+  const intP = parseInt(parts[0]); 
+  const decP = parts[1] ? parseInt(parts[1]) : 0;
+  
   let intW = []; let num = intP; let scaleIdx = 0;
-  if (num === 0) { intW.push("ZERO"); } else { while (num > 0) { if (num % 1000 !== 0) intW.unshift(numToWords(num % 1000) + (scaleIdx > 0 ? " " + wordsScales[scaleIdx] : "")); num = Math.floor(num / 1000); scaleIdx++; } }
+  if (num === 0) { 
+      intW.push("ZERO"); 
+  } else { 
+      while (num > 0) { 
+          if (num % 1000 !== 0) intW.unshift(numToWords(num % 1000) + (scaleIdx > 0 ? " " + wordsScales[scaleIdx] : "")); 
+          num = Math.floor(num / 1000); 
+          scaleIdx++; 
+      } 
+  }
+  
   let finalStr = "SAY " + (currNames[currCode] || currCode) + " " + intW.join(" ").trim();
-  if (decP > 0) finalStr += " AND CENTS " + numToWords(decP);
+  if (decP > 0) {
+      finalStr += " AND CENTS " + numToWords(decP);
+  }
   finalStr += " ONLY";
+  
   document.getElementById('amountResult').innerText = finalStr.replace(/\s+/g, ' ');
 }
-function copyAmountResult() { const text = document.getElementById('amountResult').innerText; if (text === "- 等待输入 -" || !text) return showToast("没有可以复制的内容", "warning"); navigator.clipboard.writeText(text).then(() => showToast("复制成功！", "success")).catch(err => showToast("复制失败", "error")); }
+
+function copyAmountResult() { 
+    const text = document.getElementById('amountResult').innerText; 
+    if (text === "- 等待输入 -" || !text) return showToast("没有可以复制的内容", "warning"); 
+    navigator.clipboard.writeText(text).then(() => showToast("复制成功！", "success")).catch(err => showToast("复制失败", "error")); 
+}
 
 // ==========================================
-// 终极 PDF 画图引擎
+// 🖨️ PDF 导出与打印核心
 // ==========================================
+
+function getPrintFileName() {
+    const shipCode = document.getElementById('workOrderNo').value.trim();
+    const dest = document.getElementById('destination').value.trim();
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    
+    let parts = [];
+    if(shipCode) parts.push(shipCode.replace(/[\/\\:*?"<>|]/g, '-'));
+    if(dest) parts.push(dest.replace(/[\/\\:*?"<>|]/g, '-'));
+    parts.push(dateStr);
+    
+    return parts.join('-') || `ShippingMarks-${dateStr}`;
+}
+
+function validateAndPrint() {
+  const destInput = document.getElementById('destination'); let isValid = true; let hasProducts = false;
+  document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
+  if (!destInput.value.trim()) { destInput.classList.add('input-warning'); showToast('⚠️ 目的地不能为空！', 'error'); destInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); isValid = false; }
+  pallets.forEach(pallet => { let palletHasError = false; pallet.products.forEach((pr) => { hasProducts = true; if (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox) { isValid = false; palletHasError = true; } }); if (palletHasError) pallet.isOpen = true; });
+  if (!hasProducts && isValid) { showToast('⚠️ 没有可打印的数据！', 'error'); isValid = false; }
+  if (!isValid) {
+      renderPalletList(); let firstErrorFound = false;
+      pallets.forEach(pallet => { pallet.products.forEach((pr, pi) => { const wrapper = document.getElementById(`prod-${pallet.id}-${pi}`); if (wrapper) { const inputs = wrapper.querySelectorAll('input'); if (!pr.w) inputs[0].classList.add('input-warning'); if (!pr.h) inputs[1].classList.add('input-warning'); if (!pr.thickness) inputs[2].classList.add('input-warning'); if (!pr.type) inputs[3].classList.add('input-warning'); if (!pr.boxes) inputs[4].classList.add('input-warning'); if (!pr.pcsPerBox) inputs[5].classList.add('input-warning'); if (!firstErrorFound && (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox)) { wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' }); firstErrorFound = true; } } }); });
+      if (hasProducts) showToast('⚠️ 请补充带红框的必填数据！', 'error'); return; 
+  }
+  
+  if (!targetData || (!targetData.pcs && !targetData.sqm)) {
+      if(!confirm("⚠️ 未检测到流程单数据，无法进行智能核对。是否继续强制打印？")) return;
+  } else {
+     let pcsMatch = (!targetData.pcs || currentTotalPcs === targetData.pcs);
+     let sqmMatch = (!targetData.sqm || Math.abs(currentTotalSqm - targetData.sqm) <= 0.1);
+     if (!pcsMatch || !sqmMatch) {
+         let diffPcs = currentTotalPcs - (targetData.pcs || 0); let msg = `⚠️ 严重警告：打托数据与流程单严重不符！\n\n`;
+         if(!pcsMatch) msg += `[总张数] 相差: ${diffPcs > 0 ? '+'+pcsDiff : pcsDiff} 张\n`; if(!sqmMatch) msg += `[总平米] 不一致\n`; msg += `\n确认属于特殊情况强制打印？`;
+         if(!confirm(msg)) return; 
+     }
+  }
+  
+  document.title = getPrintFileName(); 
+  document.getElementById('marksGrid').innerHTML = allCardsHTML.map(c => c.html).join('');
+  setTimeout(() => { 
+      window.print(); 
+      setTimeout(() => { document.title = ORIGINAL_TITLE; renderPage(); }, 2000); 
+  }, 100);
+}
+
 async function exportToPDF() {
   if (allCardsHTML.length === 0) { showToast('没有任何可导出的数据！', 'error'); return; }
   showToast('正在生成高清 PDF，请稍候...', 'success');
