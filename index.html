@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shipping Marks OS V1.8.7 - Heavy Industrial</title>
+<title>Shipping Marks OS V1.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -123,9 +123,7 @@
   .input-warning { border-color: var(--danger) !important; box-shadow: 0 0 0 3px var(--danger-light) !important; background: rgba(255,59,48,0.02) !important; }
   .custom-pack-input { color: var(--warning) !important; font-weight: 700 !important; background: rgba(217,119,6,0.05) !important; border-color: rgba(217,119,6,0.2) !important; }
 
-  .view-ctrl { background: rgba(128,128,128,0.02); padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
-  .view-ctrl label { display: flex; align-items: center; margin-bottom: 0; text-transform: none; font-size: 12px; gap: 8px; cursor: pointer; color: var(--text); font-weight: 500; letter-spacing: normal;}
-  .view-ctrl input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); margin:0;}
+  .view-ctrl { background: rgba(128,128,128,0.02); padding: 14px 24px; border-bottom: 1px solid var(--border); display: flex; gap: 20px; align-items: center; justify-content: flex-end; }
 
   .pallet-list { display: flex; flex-direction: column; gap: 24px; }
   .pallet-item { border: none; border-radius: var(--radius-inner); background: transparent; transition: all 0.3s; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.02); }
@@ -136,15 +134,15 @@
   .pallet-item.open .pallet-badge { background: var(--accent); }
   .pallet-summary { font-size: 12px; color: var(--text); font-weight: 500; margin-left: 14px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center;}
   .pallet-body { max-height: 0; opacity: 0; padding: 0 20px; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease; }
-  .pallet-item.open .pallet-body { max-height: 3000px; opacity: 1; padding: 24px 20px; }
+  .pallet-item.open .pallet-body { max-height: 5000px; opacity: 1; padding: 24px 20px; }
 
-  /* Grid breathing room */
-  .product-row-single { padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.03); margin-bottom: 12px; display: grid; grid-template-columns: 240px 1fr 75px 75px 90px 40px; gap: 12px; align-items: center;}
+  /* 行宽分配优化 */
+  .product-row-single { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.03); margin-bottom: 10px; display: grid; grid-template-columns: 200px 1fr 70px 70px 80px 40px; gap: 10px; align-items: center;}
   .product-row-single:last-child { border-bottom: none; margin-bottom: 0;}
-  .product-row-single input { min-height: 44px; padding: 8px; font-weight: 500; text-align: center; border: 1px solid transparent; border-radius: 6px; background: rgba(0,0,0,0.03); color: var(--text); transition: 0.2s;}
+  .product-row-single input { min-height: 40px; padding: 8px; font-weight: 500; text-align: center; border: 1px solid transparent; border-radius: 6px; background: rgba(0,0,0,0.03); color: var(--text); transition: 0.2s;}
   .product-row-single input:focus { border-color: var(--accent); background: transparent; }
-  .product-row-single .sep { font-size: 12px; color: var(--text-muted); font-weight: 500; padding: 0 6px; }
-  .total-pcs-cell { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 700; color: var(--text); border-radius: 6px; }
+  .product-row-single .sep { font-size: 12px; color: var(--text-muted); font-weight: 500; padding: 0 4px; }
+  .total-pcs-cell { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 700; color: var(--text); border-radius: 6px; text-align: center; }
 
   /* Action Buttons */
   .btn-icon { background: var(--input-bg); border: 1px solid transparent; color: var(--text-muted); font-size: 16px; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
@@ -190,7 +188,7 @@
   .btn-zoom { background: transparent; border: none; font-size: 16px; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center;}
   .btn-zoom:hover { color: var(--accent); background: var(--input-bg); }
   
-  .page-nav-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 6px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px;}
+  .page-nav-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 4px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s;}
   .page-nav-btn:hover { background: var(--input-bg); border-color: var(--border-hover); }
 
   /* Page 2: Amount tool */
@@ -208,7 +206,7 @@
   }
 
   /* ==========================================
-     🖼️ 唛头重工业复刻核心 CSS - Heavy Industrial Edition
+     🖼️ 唛头核心 CSS - 极致动态缩放排版 + 三层绝对对齐
      ========================================== */
   .mark-card { 
     background: white; 
@@ -225,145 +223,18 @@
     position: relative; 
   }
   
-  /* 装甲外框 */
   .mark-inner { 
-    width: 196mm; 
-    height: 138mm; 
-    border: 4px solid #000; /* 装甲级外框 */
+    width: 200mm; 
+    height: 140mm; 
+    border: none; 
     box-sizing: border-box; 
     overflow: hidden; 
     background: #fff; 
-    padding: 4mm 6mm; 
     display: flex; 
     flex-direction: column;
+    font-family: Arial, sans-serif;
   }
   
-  /* 顶部 Logo & 托盘号 */
-  .mark-top { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    border-bottom: 3px solid #000; 
-    padding-bottom: 3mm; 
-    margin-bottom: 2.5mm; 
-  }
-  
-  .mark-logo { 
-    font-family: Arial, Helvetica, sans-serif; 
-    font-weight: 900; 
-    color: #000; 
-    line-height: 1; 
-    text-transform: uppercase; 
-    letter-spacing: -1px; 
-  }
-  
-  /* 线框靶向托盘号 - 不费墨不掉色方案 */
-  .pallet-box-stencil {
-    border: 4px solid #000; /* Stencil 风格粗线框 */
-    padding: 1.5mm 4mm;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .stencil-label { 
-    font-size: 4.5mm; 
-    font-weight: 900; 
-    text-transform: uppercase; 
-    margin-bottom: -1mm; 
-  }
-  
-  .stencil-number { 
-    font-size: 18mm; 
-    font-weight: 900; 
-    font-family: 'JetBrains Mono', Consolas, monospace; 
-    line-height: 1; 
-    letter-spacing: -2px; 
-  }
-  
-  .page-tag-print { 
-    font-size: 3.5mm; 
-    font-weight: 800; 
-    color: #000; 
-    margin-top: 1mm; 
-  }
-  
-  /* 订单产地信息行 */
-  .mark-po { 
-    font-size: 5mm; 
-    font-weight: 800; 
-    color: #000; 
-    font-family: 'JetBrains Mono', Consolas, monospace; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 2mm; 
-  }
-  
-  .mark-origin-line { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: flex-end; 
-    font-weight: 900; 
-    border-bottom: 3px solid #000; 
-    padding-bottom: 3mm; 
-    margin-bottom: 3mm; 
-    text-transform: uppercase; 
-  }
-  
-  .made-in { font-size: 6mm; }
-  .dest-lbl { font-size: 3.5mm; font-weight: 800; color: #555; }
-  .dest-val { font-size: 6.5mm; color: #000; }
-
-  /* 实体网格数据表 */
-  .mark-table-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; margin-top: 0; }
-  .mark-table { width: 100%; border-collapse: collapse; margin-bottom: auto;}
-  
-  .mark-table th { 
-    background: transparent; color: #000; 
-    font-size: 4.5mm; 
-    font-weight: 800; 
-    padding: 2mm; 
-    border: 2px solid #000; 
-  }
-  
-  .mark-table td { 
-    font-size: 16pt; 
-    font-family: 'JetBrains Mono', Consolas, monospace; 
-    font-weight: 800; 
-    padding: 2.5mm 2mm; 
-    border: 2px solid #000; 
-    color: #000; 
-  }
-  
-  .mark-table .t-left { text-align: left; }
-  .mark-table .t-right { text-align: right; }
-  
-  /* 稳重底盘合计 */
-  .mark-footer { 
-    border-top: 4px solid #000; 
-    padding-top: 3mm; 
-    margin-top: 3mm; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-  }
-  
-  .f-totals { display: flex; align-items: baseline; gap: 6mm; }
-  .f-lbl { font-size: 3.5mm; font-weight: 800; color: #333; }
-  .f-val { font-size: 7.5mm; font-weight: 900; font-family: 'JetBrains Mono', Consolas, monospace; }
-  
-  /* 警示语单行 */
-  .f-note { 
-    font-size: 3.5mm; 
-    font-weight: 800; 
-    color: #000; 
-    text-align: right; 
-    max-width: 50%; 
-    white-space: nowrap; /* 绝对禁止换行 */
-  }
-
   /* 打印模式微调 */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; }
@@ -382,9 +253,7 @@
     .mark-card:nth-child(2n) { page-break-after: always !important; break-after: page !important;}
     .mark-card:last-child { page-break-after: auto !important; break-after: auto !important;}
     
-    /* 强制黑色 */
-    .mark-inner, .mark-top, .mark-logo, .stencil-label, .stencil-number, .page-tag-print, .mark-po, .mark-origin-line, .dest-lbl, .dest-val, .mark-table th, .mark-table td, .f-lbl, .f-val, .f-note { color: black !important; border-color: black !important; }
-    .f-lbl { color: #555 !important; }
+    .mark-inner * { color: #000 !important; border-color: #000 !important; }
   }
 
   .btn-back-to-top { position: fixed; bottom: 40px; right: 40px; padding: 14px 20px; background: var(--accent); color: var(--bg); border: none; border-radius: 50px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 24px rgba(0,0,0,0.15); cursor: pointer; opacity: 0; transform: translateY(20px); pointer-events: none; transition: all 0.4s ease; z-index: 1000; display: flex; align-items: center; gap: 8px;}
@@ -424,7 +293,7 @@
 <div class="main-wrapper">
   <header>
     <div class="header-left">
-      <h1 id="pageTitle"><i class="ph ph-package"></i> 唛头生成工作台</h1>
+      <h1 id="pageTitle"><i class="ph ph-package"></i> OS V1.0</h1>
       <div id="globalStats" class="global-stats">
         <div class="global-stats-item"><span class="lbl">BOXES</span> <span id="g-boxes">0</span></div><div class="stat-divider"></div>
         <div class="global-stats-item"><span class="lbl">PCS</span> <span id="g-pcs">0</span></div><div class="stat-divider"></div>
@@ -482,7 +351,7 @@
             </div>
             <div class="field-row">
               <div><label>订单号 / PO NO.</label><input type="text" id="poNo" class="font-mono" placeholder="客户订单号/发票号" oninput="triggerSave()"></div>
-              <div><label>流程单号 / FACTORY NO.</label><input type="text" id="workOrderNo" class="font-mono" placeholder="建议填写" oninput="triggerSave()"></div>
+              <div><label>发货代码 / SHIPPING CODE</label><input type="text" id="workOrderNo" class="font-mono" placeholder="建议填写" oninput="triggerSave()"></div>
             </div>
           </div>
         </div>
@@ -520,18 +389,19 @@
       </div>
 
       <div class="preview-panel">
-        <div class="view-ctrl">
-           <label><input type="checkbox" id="chkPO" onchange="generateMarks()"> 显示订单号</label>
-           <label><input type="checkbox" id="chkTotal" checked onchange="generateMarks()"> 显示合计</label>
-           <span class="sync-badge" id="saveStatus" style="margin-left:auto"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
+        <div class="view-ctrl" style="justify-content: flex-end;">
+           <span class="sync-badge" id="saveStatus"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
         </div>
 
         <div class="preview-header">
           <div class="preview-title">
-            <i class="ph ph-eye"></i> 渲染预览
+            <i class="ph ph-eye"></i> 打印预览
             <div style="display:flex;align-items:center;gap:8px;margin-left:16px;">
                <button class="page-nav-btn" onclick="prevPage()"><i class="ph ph-caret-left"></i></button>
-               <span id="pageIndicator" class="font-mono" style="font-size:13px;font-weight:700;min-width:50px;text-align:center;color:var(--text);">0 / 0</span>
+               <div style="display:flex;align-items:center;gap:4px;">
+                  <input type="number" id="pageInput" class="font-mono" style="width: 44px; min-height: 28px; padding: 2px 4px; text-align: center; border: 1px solid var(--border); border-radius: 4px; background: transparent; color: var(--text); font-size: 13px; font-weight: 700;" value="0" min="1" onchange="jumpToPage(this.value)">
+                  <span class="font-mono" style="font-size:13px; font-weight:700; color:var(--text-muted);"> / <span id="totalPages">0</span></span>
+               </div>
                <button class="page-nav-btn" onclick="nextPage()"><i class="ph ph-caret-right"></i></button>
             </div>
           </div>
@@ -566,18 +436,19 @@
     </div>
   </main>
 
-  <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">Created by @Mark | OS V1.8.7 (Heavy Industrial)</div>
+  <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">Created by @Mark | OS V1.0 09/05/2026</div>
 </div>
 
 <button id="backToTop" class="btn-back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"><i class="ph ph-arrow-up"></i> 返回顶部</button>
 
 <script>
 // ==========================================
-// 🛡️ 核心数据逻辑 - 100% 保持 V1.6.3 原版
+// 🛡️ 核心数据逻辑 
 // ==========================================
 
 let pallets = []; let palletCount = 0; let currentTotalPcs = 0; let currentTotalSqm = 0; let targetData = null;
-let allCardsHTML = []; let currentPageIndex = 0; const MAX_ROWS_PER_CARD = 5; const ORIGINAL_TITLE = document.title;
+let allCardsHTML = []; let currentPageIndex = 0; 
+const ORIGINAL_TITLE = document.title;
 
 let saveTimeout;
 function triggerSave() { setSyncStatus(false); clearTimeout(saveTimeout); saveTimeout = setTimeout(saveData, 800); }
@@ -612,7 +483,6 @@ function switchPage(pageId, element, titleText) {
   document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   document.getElementById(pageId).classList.add('active'); element.classList.add('active');
-  document.getElementById('pageTitle').innerHTML = titleText;
   
   const isMarksPage = (pageId === 'pageMarks');
   document.getElementById('globalStats').style.display = isMarksPage ? 'flex' : 'none';
@@ -765,7 +635,7 @@ function loadData() {
 function clearTargetData() { targetData = null; triggerSave(); generateMarks(); showToast("已清除流程单目标"); }
 
 // ========================================================
-// 🛡️ V1.6.3 原版解析逻辑 (绝对冻结，不修改任何底层)
+// 🛡️ 原版解析逻辑 
 // ========================================================
 
 function parseWorkOrder(data) {
@@ -978,107 +848,145 @@ function parseExcelData(arrayBuffer) {
 }
 
 // ==========================================
-// 🎨 V1.8.7 重工业装甲排版 - 1:1像素复刻参考图
+// 🎨 打印排版引擎：横向切层 + 三层绝对对齐 + 动态缩放
 // ==========================================
 
 function getStrLen(str) { return str ? str.replace(/[\u0100-\uffff]/g, "aa").length : 0; }
 
-function buildMarkHTML(customer, destination, poNo, workOrderNo, origin, pNum, pTotal, products, tPcs, tBoxes, curPage, tPages) {
-  // Stencil Table Styles - 实体黑网格，承重墙
-  let thSt = 'font-size:4.5mm; border: 2px solid #000; padding: 2mm; font-weight: 800; text-transform: uppercase;'; 
-  let tdSt = 'font-size:16pt; font-family:\'JetBrains Mono\', monospace; font-weight: 800; padding: 2.5mm 2mm; border: 2px solid #000;';
+function buildMarkHTML(customer, destination, poNo, workOrderNo, origin, pNum, pTotal, products, tPcs, tBoxes) {
+  let rLen = products.length;
+  
+  // 核心：四阶动态缩放 (Dynamic Scaling) + 横向切层间距调整
+  let tdFontSize = '15pt', tdPadding = '2.5mm 1mm', thFontSize = '4.5mm', markPadding = '6mm 8mm', logoSize = '12mm';
+  let poFontSize = '4.5mm', madeInFontSize = '6.5mm', destFontSize = '8mm', palletNumSize = '18mm', headerGap = '6mm';
 
-  let rows = products.map(p => `<tr>
-    <td style="${tdSt} text-align:left;">${p.w}×${p.h}×${(typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : "0.30"}</td>
-    <td style="${tdSt} text-align:left;">${(p.type||'').replace(/\s+/g, '&nbsp;')}</td>
-    <td style="${tdSt} text-align:right;">${p.pcs}</td>
-    <td style="${tdSt} text-align:right;">${p.boxes}</td>
-  </tr>`).join('');
-  
-  if(!rows) rows = `<tr><td colspan="4" style="color:#999;padding:6px;text-align:center; ${tdSt}">— 空 —</td></tr>`;
-  
-  let pageTagHtml = tPages > 1 ? `<div class="page-tag-print" style="font-size: 3.5mm; font-weight: 800; margin-top: 1mm;">PAGE ${curPage}/${tPages}</div>` : '';
-  let safeCustomer = (customer||'').trim().replace(/\s+/g, '&nbsp;'); 
-  let custScale = getStrLen(customer) > 10 ? 10 / getStrLen(customer) : 1; 
-  let webCustFontSize = (14 * custScale).toFixed(2) + 'mm';
-  
-  let leftItem = (poNo ? `PO NO.: ${poNo.trim()}` : '').replace(/\s+/g, '&nbsp;'); 
-  let rightItem = (workOrderNo ? `FACTORY NO.: ${workOrderNo.trim()}` : '').replace(/\s+/g, '&nbsp;');
-  let safeDest = (destination||'').trim().replace(/\s+/g, '&nbsp;'); 
-  
-  const chkPOEl = document.getElementById('chkPO');
-  const chkTotalEl = document.getElementById('chkTotal');
-  const showP = chkPOEl ? chkPOEl.checked : false; // 默认隐藏 PO
-  const showT = chkTotalEl ? chkTotalEl.checked : true;
-  
-  // Conditionally render PO row - matches picture when unchecked
-  let poHtml = showP ? `<div class="mark-po" style="font-size: 5mm; font-weight: 800; color: #000; font-family: 'JetBrains Mono', monospace; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2mm;"><span>${leftItem}</span><span>${rightItem}</span></div>` : '';
-  
-  let fData = ``;
-  if (showT) { 
-      fData += `<div class="f-totals" style="display:flex; align-items:baseline; gap:6mm;">
-                  <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">TOTAL PCS:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:'JetBrains Mono', monospace;">${tPcs.toLocaleString()}</span></div>
-                  <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">BOXES:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:'JetBrains Mono', monospace;">${tBoxes}</span></div>
-                </div>`; 
+  if (rLen >= 12) {
+      // 极限压榨版
+      tdFontSize = '9pt'; tdPadding = '0.5mm 1mm'; thFontSize = '3mm'; markPadding = '3mm 5mm'; 
+      logoSize = '7mm'; poFontSize = '3.5mm'; madeInFontSize = '5mm'; destFontSize = '6mm'; palletNumSize = '12mm'; headerGap = '2mm';
+  } else if (rLen >= 9) {
+      // 高密排版
+      tdFontSize = '10pt'; tdPadding = '1mm 1mm'; thFontSize = '3.5mm'; markPadding = '4mm 6mm'; 
+      logoSize = '8mm'; poFontSize = '3.5mm'; madeInFontSize = '5.5mm'; destFontSize = '6.5mm'; palletNumSize = '14mm'; headerGap = '3mm';
+  } else if (rLen >= 6) {
+      // 标准紧凑版
+      tdFontSize = '12pt'; tdPadding = '1.5mm 1mm'; thFontSize = '4mm'; markPadding = '4mm 8mm'; 
+      logoSize = '10mm'; poFontSize = '4mm'; madeInFontSize = '6mm'; destFontSize = '7mm'; palletNumSize = '16mm'; headerGap = '4mm';
+  } else if (rLen >= 4) {
+      // 适度微缩
+      tdFontSize = '13pt'; tdPadding = '2mm 1mm'; thFontSize = '4.2mm'; markPadding = '5mm 8mm';
+      logoSize = '11mm'; headerGap = '5mm';
   }
 
-  // 贯穿左右的产地/目的地粗分界线
-  let originHtml = `
-  <div class="mark-origin-line" style="display: flex; justify-content: space-between; align-items: flex-end; font-weight: 900; color: #000; border-bottom: 3px solid #000; padding-bottom: 3mm; margin-bottom: 3mm; text-transform: uppercase;">
-      <div class="made-in" style="font-size: 6mm; line-height: 1;">MADE IN CHINA</div>
-      <div class="dest-wrapper" style="display: flex; align-items: baseline; gap: 2mm;">
-          <span class="dest-lbl" style="font-size: 3.5mm; font-weight: 800; color: #555;">DESTINATION:</span>
-          <span class="dest-val" style="font-size: 6.5mm; color: #000; line-height: 1;">${safeDest}</span>
-      </div>
-  </div>`;
+  let thSt = `font-family: Arial, sans-serif; font-size:${thFontSize}; font-weight: 900; padding: ${tdPadding}; text-align: left; border-bottom: 1.5px solid #000;`; 
+  let tdSt = `font-family: Arial, monospace; font-size:${tdFontSize}; font-weight: 800; padding: ${tdPadding}; border-bottom: 1px dashed #ccc; color: #000;`;
 
-  // 稳重底盘合计
-  let footerHtml = `
-  <div class="mark-footer" style="border-top:4px solid #000; padding-top:3mm; margin-top:3mm; display:flex; justify-content:space-between; align-items:center;">
-      ${fData}
-      <div class="f-note" style="font-size: 3.5mm; font-weight: 800; color: #000; text-align: right; max-width: 50%; white-space: nowrap;">STORE IN A DRY, COOL, AND DARK PLACE.</div>
-  </div>`;
+  let rows = products.map((p, index) => {
+    let rowStyle = (index === products.length - 1) ? tdSt.replace('border-bottom: 1px dashed #ccc;', 'border-bottom: none;') : tdSt;
+    return `<tr>
+      <td style="${rowStyle} text-align:left;">${p.w}×${p.h}×${(typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : "0.30"}</td>
+      <td style="${rowStyle} text-align:left; word-break: break-all;">${(p.type||'').replace(/\s+/g, '&nbsp;')}</td>
+      <td style="${rowStyle} text-align:right;">${(p.pcs||0).toLocaleString()}</td>
+      <td style="${rowStyle} text-align:right;">${(p.boxes||0).toLocaleString()}</td>
+    </tr>`
+  }).join('');
+  
+  if(!rows) rows = `<tr><td colspan="4" style="color:#999;padding:6px;text-align:center; ${tdSt} border-bottom:none;">N/A</td></tr>`;
+  
+  let safeCustomer = (customer||'').trim().replace(/\s+/g, '&nbsp;'); 
+  let custScale = getStrLen(customer) > 15 ? 15 / getStrLen(customer) : 1; 
+  let webCustFontSize = (parseFloat(logoSize) * custScale).toFixed(2) + 'mm';
+  
+  let safePo = (poNo||'').trim().replace(/\s+/g, '&nbsp;'); 
+  let safeShipCode = (workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
+  let safeDest = (destination||'').trim().replace(/\s+/g, '&nbsp;'); 
+  
+  // 辅助信息并排显示，降维（字重600）
+  let poStr = [];
+  if(safePo) poStr.push(`PO NO.: ${safePo}`);
+  if(safeShipCode) poStr.push(`SHIPPING CODE: ${safeShipCode}`);
+  
+  let poHtml = '';
+  if (poStr.length > 0) {
+      poHtml = `<div style="font-size: ${poFontSize}; font-weight: 600; color: #000; font-family: Arial, sans-serif; display: flex; gap: 4mm; margin-top: 1.5mm;"><span>${poStr.join('</span><span style="color:#ccc">|</span><span>')}</span></div>`;
+  }
 
-  return `<div class="mark-inner" style="width: 196mm; height: 138mm; border: 4px solid #000; box-sizing: border-box; overflow: hidden; background: #fff; padding: 4mm 6mm; display: flex; flex-direction: column;">
-      <div class="mark-top" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #000; padding-bottom: 3mm; margin-bottom: 2.5mm;">
-          <div class="mark-logo" style="font-size:${webCustFontSize}; font-weight: 900; color: #000; line-height: 1; text-transform: uppercase; letter-spacing: -1px;">${safeCustomer}</div>
+  let fData = `<div class="f-totals" style="display:flex; align-items:baseline; gap:6mm;">
+                <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">TOTAL PCS:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:Arial, monospace; color: #000;">${tPcs.toLocaleString()}</span></div>
+                <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">BOXES:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:Arial, monospace; color: #000;">${tBoxes.toLocaleString()}</span></div>
+              </div>`;
+
+  return `<div class="mark-inner" style="width: 200mm; height: 140mm; box-sizing: border-box; overflow: hidden; background: #fff; padding: ${markPadding}; display: flex; flex-direction: column; font-family: Arial, sans-serif;">
+      
+      <div class="mark-header" style="display: flex; flex-direction: column; border-bottom: 3px solid #000; padding-bottom: 2mm; margin-bottom: 2mm;">
           
-          <div class="pallet-box-stencil" style="border: 4px solid #000; padding: 1.5mm 4mm; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-              <div class="stencil-label" style="font-size: 4.5mm; font-weight: 900; text-transform: uppercase; margin-bottom: -1mm;">PALLET NO.</div>
-              <div class="stencil-number" style="font-size: 18mm; font-weight: 900; font-family: 'JetBrains Mono', monospace; line-height: 1; letter-spacing: -2px;">${pNum}/${pTotal}</div>
-              ${pageTagHtml}
+          <div class="header-top-row" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: ${headerGap};">
+              <div class="top-left" style="display: flex; flex-direction: column;">
+                  <div class="mark-logo" style="font-size:${webCustFontSize}; font-weight: 900; color: #000; line-height: 1; text-transform: uppercase; letter-spacing: -0.5px;">${safeCustomer}</div>
+                  ${poHtml}
+              </div>
+              
+              <div class="top-right pallet-box-clean" style="border: 2px solid #000; padding: 2mm 4mm; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 32mm;">
+                  <div class="stencil-label" style="font-size: 3.5mm; font-weight: 800; color: #000; margin-bottom: 1mm; text-align: right;">PALLET NO.</div>
+                  <div class="stencil-number" style="font-size: ${palletNumSize}; font-weight: 900; font-family: Arial, monospace; line-height: 1; color: #000; text-align: right;">${pNum}/${pTotal}</div>
+              </div>
           </div>
+          
+          <div class="header-bottom-row" style="display: flex; justify-content: space-between; align-items: flex-end;">
+              <div class="made-in" style="font-size: ${madeInFontSize}; font-weight: 900; color: #000; line-height: 1;">MADE IN CHINA</div>
+              
+              <div class="dest-wrapper" style="display: flex; align-items: baseline; gap: 2mm;">
+                  <span class="dest-lbl" style="font-size: 3.5mm; font-weight: 800; color: #555;">DESTINATION:</span>
+                  <span class="dest-val" style="font-size: ${destFontSize}; font-weight: 900; color: #000; line-height: 1;">${safeDest}</span>
+              </div>
+          </div>
+          
       </div>
-      ${poHtml}
-      ${originHtml}
+
       <div class="mark-table-wrap" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
           <table class="mark-table" style="width:100%; border-collapse:collapse; margin-bottom: auto;">
               <thead>
                   <tr>
-                      <th style="${thSt} text-align:left;">SIZE (mm)</th>
-                      <th style="${thSt} text-align:left;">TYPE</th>
+                      <th style="${thSt}">SIZE (mm)</th>
+                      <th style="${thSt}">TYPE</th>
                       <th style="${thSt} text-align:right;">PCS</th>
                       <th style="${thSt} text-align:right;">BOXES</th>
                   </tr>
               </thead>
-              <tbody style="color:#000;">
+              <tbody>
                   ${rows}
               </tbody>
+              <tfoot>
+                  <tr style="border-top: 2.5px solid #000;">
+                      <td colspan="4" style="padding:0;"></td>
+                  </tr>
+              </tfoot>
           </table>
       </div>
-      ${footerHtml}
+
+      <div class="mark-footer" style="padding-top:2mm; margin-top:auto; display:flex; justify-content:space-between; align-items:center;">
+          ${fData}
+          <div class="f-note" style="font-size: 3mm; font-weight: 800; color: #000; text-align: right;">STORE IN A DRY, COOL, AND DARK PLACE.</div>
+      </div>
   </div>`;
 }
 
 // ==========================================
-// 盾牌结束，Js逻辑继续
+// 全新 PDF 命名规则及其他逻辑继续
 // ==========================================
 
 function getPrintFileName() {
-    const rawWo = document.getElementById('workOrderNo').value.trim(); const rawDest = document.getElementById('destination').value.trim();
-    const safeWo = rawWo.replace(/[\/\\:*?"<>|]/g, '-'); const safeDest = rawDest.replace(/[\/\\:*?"<>|]/g, '-');
-    const now = new Date(); const timeStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
-    if (safeWo && safeDest) return `${safeWo}_${safeDest}_唛头 ${timeStr}`; if (safeDest) return `${safeDest}_唛头 ${timeStr}`; if (safeWo) return `${safeWo}_唛头 ${timeStr}`; return `未命名_唛头 ${timeStr}`;
+    const shipCode = document.getElementById('workOrderNo').value.trim();
+    const dest = document.getElementById('destination').value.trim();
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    
+    let parts = [];
+    if(shipCode) parts.push(shipCode.replace(/[\/\\:*?"<>|]/g, '-'));
+    if(dest) parts.push(dest.replace(/[\/\\:*?"<>|]/g, '-'));
+    parts.push(dateStr);
+    
+    return parts.join('-') || `ShippingMarks-${dateStr}`;
 }
 
 function validateAndPrint() {
@@ -1158,9 +1066,37 @@ function updateReconciliation() {
    }
 }
 
-function renderPage() { const grid = document.getElementById('marksGrid'); const indicator = document.getElementById('pageIndicator'); if (allCardsHTML.length === 0) { grid.innerHTML = ''; indicator.innerText = '0 / 0'; return; } if (currentPageIndex >= allCardsHTML.length) currentPageIndex = allCardsHTML.length - 1; if (currentPageIndex < 0) currentPageIndex = 0; grid.innerHTML = allCardsHTML[currentPageIndex].html; indicator.innerText = `${currentPageIndex + 1} / ${allCardsHTML.length}`; }
+function renderPage() { 
+    const grid = document.getElementById('marksGrid'); 
+    const pageInput = document.getElementById('pageInput'); 
+    const totalPagesSpan = document.getElementById('totalPages'); 
+    
+    if (allCardsHTML.length === 0) { 
+        grid.innerHTML = ''; 
+        pageInput.value = 0;
+        totalPagesSpan.innerText = '0'; 
+        return; 
+    } 
+    
+    if (currentPageIndex >= allCardsHTML.length) currentPageIndex = allCardsHTML.length - 1; 
+    if (currentPageIndex < 0) currentPageIndex = 0; 
+    
+    grid.innerHTML = allCardsHTML[currentPageIndex].html; 
+    pageInput.value = currentPageIndex + 1;
+    totalPagesSpan.innerText = allCardsHTML.length; 
+}
+
 function prevPage() { if(currentPageIndex > 0) { currentPageIndex--; renderPage(); } }
 function nextPage() { if(currentPageIndex < allCardsHTML.length - 1) { currentPageIndex++; renderPage(); } }
+
+function jumpToPage(val) {
+    let p = parseInt(val) - 1;
+    if(isNaN(p)) p = 0;
+    if(p < 0) p = 0;
+    if(p >= allCardsHTML.length) p = allCardsHTML.length - 1;
+    currentPageIndex = p;
+    renderPage();
+}
 
 function generateMarks() {
   allCardsHTML = []; 
@@ -1177,13 +1113,9 @@ function generateMarks() {
     validProducts.forEach(p => { globalBoxes += parseFloat(p.boxes) || 0; globalPcs += parseFloat(p.pcs) || 0; globalSqm += ((parseFloat(p.w) || 0) / 1000) * ((parseFloat(p.h) || 0) / 1000) * (parseFloat(p.pcs) || 0); });
 
     if (validProducts.length === 0) {
-       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, [], 0, 0, 1, 1)}</div>`});
+       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, [], 0, 0)}</div>`});
     } else {
-       const totalPages = Math.ceil(validProducts.length / MAX_ROWS_PER_CARD);
-       for (let i = 0; i < validProducts.length; i += MAX_ROWS_PER_CARD) {
-         const chunk = validProducts.slice(i, i + MAX_ROWS_PER_CARD); const currentPage = Math.floor(i / MAX_ROWS_PER_CARD) + 1;
-         allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, chunk, totalPcs, totalBoxes, currentPage, totalPages)}</div>`});
-       }
+       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, origin, idx + 1, total, validProducts, totalPcs, totalBoxes)}</div>`});
     }
   });
 
@@ -1212,9 +1144,9 @@ function renderPalletList() {
     if (summary) { summary += ` | 总张数: ${palletTotalPcs}`; }
     
     let headerHTML = `
-      <div style="display: grid; grid-template-columns: 240px 1fr 75px 75px 90px 40px; gap: 12px; align-items: center; font-size: 10px; font-weight: 600; color: var(--text-muted); padding: 0 12px 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; letter-spacing: 0.5px;">
-         <div style="text-align:left;">SIZE (W×H×T)</div>
-         <div style="text-align:left;">TYPE</div>
+      <div style="display: grid; grid-template-columns: 200px 1fr 70px 70px 80px 40px; gap: 10px; align-items: center; font-size: 10px; font-weight: 600; color: var(--text-muted); padding: 0 12px 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; letter-spacing: 0.5px;">
+         <div style="text-align:center;">SIZE (W×H×T)</div>
+         <div style="text-align:center;">TYPE</div>
          <div style="text-align:center;">BOXES</div>
          <div style="text-align:center;">PCS/BX</div>
          <div style="text-align:center;">TOTAL</div>
@@ -1246,11 +1178,11 @@ function renderProductRow(palletId, pi, p) {
   return `
     <div class="product-row-single" id="prod-${palletId}-${pi}">
       <div style="display:flex; align-items:center; gap:4px;">
-          <input class="font-mono ${wErr}" style="width:100%;" type="number" value="${wVal}" placeholder="W" oninput="updateProduct(${palletId},${pi},'w',this.value)">
+          <input class="font-mono ${wErr}" style="width:100%; text-align:center;" type="number" value="${wVal}" placeholder="W" oninput="updateProduct(${palletId},${pi},'w',this.value)">
           <span class="sep">×</span>
-          <input class="font-mono ${hErr}" style="width:100%;" type="number" value="${hVal}" placeholder="H" oninput="updateProduct(${palletId},${pi},'h',this.value)">
+          <input class="font-mono ${hErr}" style="width:100%; text-align:center;" type="number" value="${hVal}" placeholder="H" oninput="updateProduct(${palletId},${pi},'h',this.value)">
           <span class="sep">×</span>
-          <input class="font-mono ${tErr}" style="width:100%;" type="number" step="0.01" value="${tVal}" placeholder="T" oninput="updateProduct(${palletId},${pi},'thickness',this.value)">
+          <input class="font-mono ${tErr}" style="width:100%; text-align:center;" type="number" step="0.01" value="${tVal}" placeholder="T" oninput="updateProduct(${palletId},${pi},'thickness',this.value)">
       </div>
       <input class="font-mono ${typeErr}" style="width:100%; text-align:center;" type="text" value="${p.type||'CTP'}" placeholder="Type" oninput="updateProduct(${palletId},${pi},'type',this.value)">
       <input class="font-mono ${bErr}" style="width:100%; text-align:center;" type="number" value="${bVal}" oninput="updateProduct(${palletId},${pi},'boxes',this.value)">
