@@ -55,7 +55,7 @@
   .sidebar-toggle { background: none; border: none; font-size: 22px; color: var(--text); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; }
   .sidebar-toggle:hover { background: var(--input-bg); }
   .sidebar-title { font-weight: 700; font-size: 14px; font-family: 'JetBrains Mono'; transition: opacity 0.2s; letter-spacing: 0.5px;}
-  .app-sidebar.collapsed .sidebar-title, .app-sidebar.collapsed .nav-text { opacity: 0; pointer-events: none; }
+  .app-sidebar.collapsed .sidebar-title { opacity: 0; pointer-events: none; }
   .sidebar-nav { flex: 1; padding: 24px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; overflow-x: hidden;}
   .nav-group-title { font-size: 10px; font-weight: 600; color: var(--text-muted); padding: 12px 14px 6px; text-transform: uppercase; letter-spacing: 1px; transition: opacity 0.2s;}
   .app-sidebar.collapsed .nav-group-title { display: none; }
@@ -64,6 +64,7 @@
   .nav-item.active { background: var(--accent); color: var(--bg); font-weight: 500; box-shadow: 0 6px 16px rgba(0,0,0,0.06);}
   .nav-item.active .nav-icon { color: var(--bg); }
   .nav-icon { font-size: 20px; width: 20px; text-align: center; flex-shrink: 0;}
+  .app-sidebar.collapsed .nav-text { opacity: 0; pointer-events: none; }
 
   /* Main Area */
   .main-wrapper { margin-left: var(--sidebar-width); transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); min-height: 100vh; display: flex; flex-direction: column; }
@@ -398,8 +399,8 @@
       </div>
 
       <div class="preview-panel">
-        <div class="view-ctrl">
-           <span class="sync-badge" id="saveStatus" style="margin-left:auto"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
+        <div class="view-ctrl" style="justify-content: flex-end;">
+           <span class="sync-badge" id="saveStatus"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
         </div>
 
         <div class="preview-header">
@@ -490,10 +491,15 @@
     </div>
   </main>
 
-  <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">Created by @Mark | OS V1.0 09/05/2026</div>
+  <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">
+    Created by @Mark | OS V1.0 09/05/2026
+    <span id="busuanzi_container_site_pv" style="display: none;"> | 累计访问: <span id="busuanzi_value_site_pv"></span> 次</span>
+  </div>
 </div>
 
 <button id="backToTop" class="btn-back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"><i class="ph ph-arrow-up"></i> 返回顶部</button>
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 <script>
 // ==========================================
@@ -951,7 +957,7 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
   let safeShipCode = (workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
   let safeDest = (destination||'').trim().replace(/\s+/g, '&nbsp;'); 
   
-  // 强制默认显示逻辑 (无复选框判断)
+  // 强制默认显示逻辑
   let poStr = [];
   if(safePo) poStr.push(`PO NO.: ${safePo}`);
   if(safeShipCode) poStr.push(`SHIPPING CODE: ${safeShipCode}`);
@@ -1142,7 +1148,7 @@ function renderPalletList() {
       </div>
     `;
 
-    div.innerHTML = `<div class="pallet-header" onclick="togglePallet(${pallet.id})"><span style="display:flex;align-items:center; width:75%; overflow:hidden;"><span class="pallet-badge">${idx+1}/${pallets.length}</span><span class="pallet-summary">${summary || '待输入明细...'}</span></span><div class="pallet-actions"><button class="btn-icon" onclick="printSinglePallet(${pallet.id}); event.stopPropagation();" title="单独打印此托盘"><i class="ph ph-printer"></i></button> <button class="btn-remove-pallet" onclick="removePallet(${pallet.id},event)" title="删除托盘"><i class="ph ph-trash"></i></button></div></div><div class="pallet-body" id="pallet-body-${pallet.id}">${headerHTML}<div id="products-${pallet.id}">${pallet.products.map((p,pi) => renderProductRow(pallet.id, pi, p)).join('')}</div><button class="btn-add-product" onclick="addProduct(${pallet.id})"><i class="ph ph-plus"></i> 增加规格明细</button></div>`;
+    div.innerHTML = `<div class="pallet-header" onclick="togglePallet(${pallet.id})"><span style="display:flex;align-items:center; width:75%; overflow:hidden;"><span class="pallet-badge">${idx+1}/${pallets.length}</span><span class="pallet-summary">${summary || '待输入明细...'}</span></span><div class="pallet-actions"><button class="btn-remove-pallet" onclick="removePallet(${pallet.id},event)" title="删除托盘"><i class="ph ph-trash"></i></button></div></div><div class="pallet-body" id="pallet-body-${pallet.id}">${headerHTML}<div id="products-${pallet.id}">${pallet.products.map((p,pi) => renderProductRow(pallet.id, pi, p)).join('')}</div><button class="btn-add-product" onclick="addProduct(${pallet.id})"><i class="ph ph-plus"></i> 增加规格明细</button></div>`;
     container.appendChild(div);
   });
 }
