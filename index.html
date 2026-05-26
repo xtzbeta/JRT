@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logistics OS V1.1 - Official Release</title>
+<title>Logistics OS V2.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -18,18 +18,13 @@
     --danger: #dc2626; --danger-light: rgba(220,38,38,0.06); 
     --warning: #d97706; --warning-light: rgba(217,119,6,0.06); 
     --success: #059669;
-    
     --manual-input: #0052cc;
-    
     --step1-color: #d1d5db; --step2-color: #9ca3af; --step3-color: #6b7280; --step4-color: #374151; --step5-color: #111827; 
-
     --sidebar-width: 240px; --sidebar-collapsed-width: 68px;
     --radius-outer: 20px; --radius-inner: 14px; --radius-elem: 8px;
     --shadow-soft: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
     --shadow-float: 0 24px 48px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
     --input-bg: rgba(0, 0, 0, 0.03); --mark-preview-bg: #ebecf0;
-
-    /* 玻璃拟物边缘光与发光阴影 (浅色模式 - 细白边缘 + 蓝灰色微光晕) */
     --glass-border: 1px solid rgba(255, 255, 255, 0.7);
     --glass-shadow: 0 8px 32px rgba(0, 82, 204, 0.06), 0 0 15px rgba(0, 82, 204, 0.03), inset 0 0 2px rgba(255, 255, 255, 0.9);
   }
@@ -40,8 +35,6 @@
     --danger: #ef4444; --warning: #f59e0b;
     --manual-input: #60a5fa;
     --input-bg: rgba(255, 255, 255, 0.04); --mark-preview-bg: #121212;
-
-    /* 玻璃拟物边缘光与发光阴影 (深色模式 - 微弱白边 + 柔和白发光) */
     --glass-border: 1px solid rgba(255, 255, 255, 0.12);
     --glass-shadow: 0 8px 32px rgba(255, 255, 255, 0.06), 0 0 15px rgba(255, 255, 255, 0.03), inset 0 0 1px rgba(255, 255, 255, 0.2);
   }
@@ -52,12 +45,10 @@
   button { font-family: inherit; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
   button:active { transform: scale(0.97) !important; }
 
-  input[type=number]::-webkit-inner-spin-button, 
-  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type=number] { -moz-appearance: textfield; }
 
-  /* Sidebar */
-  .app-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-width); background: var(--panel-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-right: 1px solid var(--border); z-index: 1000; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow: hidden; }
+  .app-sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-width); background: var(--panel-bg); backdrop-filter: saturate(180%) blur(20px); border-right: 1px solid var(--border); z-index: 1000; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; overflow: hidden; }
   .app-sidebar.collapsed { width: var(--sidebar-collapsed-width); }
   .sidebar-header { height: 70px; padding: 0 20px; display: flex; align-items: center; gap: 14px; border-bottom: 1px solid var(--border); white-space: nowrap; flex-shrink: 0; }
   .sidebar-toggle { background: none; border: none; font-size: 22px; color: var(--text); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; }
@@ -74,34 +65,27 @@
   .nav-icon { font-size: 20px; width: 20px; text-align: center; flex-shrink: 0;}
   .app-sidebar.collapsed .nav-text { opacity: 0; pointer-events: none; }
 
-  /* Main Area */
   .main-wrapper { margin-left: var(--sidebar-width); transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); min-height: 100vh; display: flex; flex-direction: column; }
   body.sidebar-collapsed .main-wrapper { margin-left: var(--sidebar-collapsed-width); }
   .app-page { display: none; padding: 0; max-width: 1560px; margin: 32px auto 0; width: 100%; padding: 0 32px;}
   .app-page.active { display: block; }
-  
   .marks-layout { display: grid; grid-template-columns: 700px 1fr; gap: 32px; align-items: start; }
 
-  header { background: var(--panel-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
+  header { background: var(--panel-bg); backdrop-filter: saturate(180%) blur(20px); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
   .header-left { display: flex; align-items: center; gap: 16px; }
   header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;}
   .header-controls { display: flex; align-items: center; gap: 12px; }
   
-  /* Global Stats */
   .global-stats { padding: 8px 20px; background: var(--input-bg); border-radius: 20px; font-size: 13px; font-weight: 800; font-family: 'JetBrains Mono'; color: var(--text); display: flex; align-items: center; gap: 16px; opacity: 0; transform: translateY(-5px); transition: all 0.3s ease; pointer-events: none; border: 1px solid var(--border); }
   .global-stats.active { opacity: 1; transform: translateY(0); }
   .global-stats-item { display: flex; align-items: center; gap: 6px; }
-  .global-stats-item span.lbl { color: var(--text-muted); font-size: 11px; font-family: 'Noto Sans SC', sans-serif; font-weight: 500; letter-spacing: 0.5px;}
+  .global-stats-item span.lbl { color: var(--text-muted); font-size: 11px; font-weight: 500; }
   .stat-divider { width: 1px; height: 14px; background: var(--border); }
   
-  /* Buttons */
   .header-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
   .header-btn:hover { border-color: var(--border-hover); background: var(--input-bg); }
-  .header-btn i { font-size: 16px; }
-  
-  /* Primary Button (Batch Print) */
   .btn-print-top { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; }
-  .btn-print-top:hover { opacity: 0.9; background: var(--text); color: var(--bg); border-color: var(--text); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .btn-print-top:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
   .preview-panel { position: sticky; top: 85px; height: calc(100vh - 105px); display: flex; flex-direction: column; border: var(--glass-border); border-radius: var(--radius-outer); background: var(--panel-bg); overflow: hidden; box-shadow: var(--glass-shadow);}
   
@@ -130,8 +114,6 @@
   input:focus, textarea:focus { background: transparent; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(128, 128, 128, 0.08); }
   
   .input-warning { border-color: var(--danger) !important; box-shadow: 0 0 0 3px var(--danger-light) !important; background: rgba(255,59,48,0.02) !important; }
-
-  /* 色彩防错法则 CSS */
   .custom-pack-input { color: var(--success) !important; font-weight: 700 !important; background: rgba(5,150,105,0.05) !important; border-color: rgba(5,150,105,0.2) !important; }
 
   .pallet-list { display: flex; flex-direction: column; gap: 24px; }
@@ -145,16 +127,13 @@
   .pallet-body { max-height: 0; opacity: 0; padding: 0 20px; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease; }
   .pallet-item.open .pallet-body { max-height: 5000px; opacity: 1; padding: 24px 20px; }
 
-  /* 色彩防错法则 CSS - 原始数据蓝色 */
   .product-row-single { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.03); margin-bottom: 10px; display: grid; grid-template-columns: 200px 1fr 70px 70px 80px 40px; gap: 10px; align-items: center;}
   .product-row-single:last-child { border-bottom: none; margin-bottom: 0;}
   .product-row-single input { min-height: 40px; padding: 8px; font-weight: 600; text-align: center; border: 1px solid transparent; border-radius: 6px; background: rgba(0,0,0,0.03); color: var(--manual-input); transition: 0.2s;}
   .product-row-single input:focus { border-color: var(--accent); background: transparent; }
   .product-row-single .sep { font-size: 12px; color: var(--text-muted); font-weight: 500; padding: 0 4px; }
-  /* 色彩防错法则 CSS - 计算结果黑（深）色 */
   .total-pcs-cell { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 800; color: var(--text); border-radius: 6px; text-align: center; }
 
-  /* Action Buttons */
   .btn-icon { background: var(--input-bg); border: 1px solid transparent; color: var(--text-muted); font-size: 16px; border-radius: 6px; padding: 6px; display: flex; align-items: center; justify-content: center; transition: 0.2s;}
   .btn-icon:hover { background: rgba(128,128,128,0.1); color: var(--text); }
   .btn-remove-pallet { background: transparent; border: none; color: var(--text-muted); border-radius: 6px; padding: 6px; font-size: 18px; display: flex; align-items: center; justify-content: center;}
@@ -163,12 +142,9 @@
   .btn-remove:hover { background: var(--danger-light); color: var(--danger); }
   .btn-add-product { width: 100%; padding: 14px; background: none; border: 1px dashed var(--border); border-radius: var(--radius-elem); color: var(--text-muted); font-size: 12px; font-weight: 500; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
   .btn-add-product:hover { border-color: var(--text-muted); color: var(--text); background: var(--input-bg); }
-  .btn-add-product i { font-size: 16px; }
   .btn-add-pallet { width: 100%; padding: 16px; background: var(--accent); border: none; border-radius: var(--radius-inner); color: var(--bg); font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); transition: 0.2s; }
   .btn-add-pallet:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
-  .btn-add-pallet i { font-size: 18px; }
   
-  /* Stat Card Specific */
   .stat-block { background: transparent; border: none; padding: 0 16px; display: flex; flex-direction: column; gap: 6px; }
   .stat-value { font-size: 32px; font-weight: 800; line-height: 1; font-family: 'JetBrains Mono'; transition: color 0.3s; letter-spacing: -0.5px;}
   .stat-value.boxes { color: var(--text); }
@@ -176,11 +152,9 @@
   .stat-value.sqm { color: var(--text-muted); }
   .stat-note { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); line-height: 1.7; }
   
-  /* Import Area */
   .drop-zone { width: 100%; padding: 24px; background: var(--input-bg); border: 1px dashed var(--border); border-radius: var(--radius-inner); transition: all 0.2s ease; display: flex; flex-direction: column; text-align: left; }
   .drop-zone:hover, .drop-zone.dragover { background: rgba(128,128,128,0.06); border-color: var(--text-muted); }
   
-  /* Sync Badge */
   .sync-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; transition: all 0.3s ease; border: 1px solid transparent;}
   .sync-badge.synced { background: rgba(52,199,89,0.08); color: var(--success); }
   .sync-badge.synced .sync-dot { background: var(--success); }
@@ -189,10 +163,8 @@
   .sync-dot { width: 6px; height: 6px; border-radius: 50%; }
   @keyframes pulse-warning { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-  /* Preview controls */
   .preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; background: transparent; padding: 16px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .preview-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; color: var(--text-muted);}
-  .preview-title i { font-size: 18px; }
   .zoom-control { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
   .zoom-control input[type=range] { width: 80px; accent-color: var(--accent); cursor: pointer; }
   .btn-zoom { background: transparent; border: none; font-size: 16px; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center;}
@@ -201,7 +173,6 @@
   .page-nav-btn { background: transparent; border: 1px solid var(--border); border-radius: 6px; padding: 4px; cursor: pointer; color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: 0.2s;}
   .page-nav-btn:hover { background: var(--input-bg); border-color: var(--border-hover); }
 
-  /* Page 2 & Docs */
   .tool-container { display: grid; grid-template-columns: 1fr; gap: 24px; }
   @media (min-width: 900px) { .tool-container { grid-template-columns: 1fr 1fr; } }
   .tool-result-box { background: var(--input-bg); border-radius: var(--radius-inner); padding: 24px; border: var(--glass-border); box-shadow: var(--glass-shadow); min-height: 300px; }
@@ -213,44 +184,15 @@
   .docs-container li { position: relative; margin-bottom: 8px; font-size: 14px; padding-left: 15px;}
   .docs-container li::before { content: "•"; position: absolute; left: 0; color: var(--text-muted); }
 
-  /* Marks Grid Screen View */
   @media screen {
     .marks-grid-wrapper { flex: 1; overflow-y: auto; overflow-x: hidden; background: var(--mark-preview-bg); padding: 32px; display: flex; justify-content: center; position: relative; }
     [data-theme="dark"] .marks-grid-wrapper { background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 70%); }
     .marks-grid { display: flex; flex-direction: column; align-items: center; gap: 32px; transform-origin: top center; transition: transform 0.2s ease; background: transparent;}
   }
 
-  /* ==========================================
-     🖼️ 唛头核心 CSS - 极致动态缩放排版 + 三层绝对对齐
-     ========================================== */
-  .mark-card { 
-    background: white; 
-    width: 210mm; 
-    height: 148.5mm; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    flex-shrink: 0; 
-    box-sizing: border-box; 
-    margin: 0; padding: 0; 
-    overflow: hidden; 
-    color: black; 
-    position: relative; 
-  }
+  .mark-card { background: white; width: 210mm; height: 148.5mm; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; margin: 0; padding: 0; overflow: hidden; color: black; position: relative; }
+  .mark-inner { width: 200mm; height: 140mm; border: none; box-sizing: border-box; overflow: hidden; background: #fff; display: flex; flex-direction: column; font-family: Arial, sans-serif; }
   
-  .mark-inner { 
-    width: 200mm; 
-    height: 140mm; 
-    border: none; 
-    box-sizing: border-box; 
-    overflow: hidden; 
-    background: #fff; 
-    display: flex; 
-    flex-direction: column;
-    font-family: Arial, sans-serif;
-  }
-  
-  /* 打印模式微调 */
   @media print {
     @page { size: A4 portrait; margin: 0 !important; }
     body, [data-theme="dark"] { background: white !important; color: black !important; margin: 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -259,25 +201,19 @@
     .main-wrapper { margin-left: 0 !important; }
     .app-page#pageMarks { display: block !important; padding: 0 !important; }
     .marks-layout { display: block !important; }
-    
     .preview-panel { display: block; width: 210mm; margin: 0; padding: 0; border: none !important; border-radius: 0; background: transparent; overflow: visible; position: static !important; box-shadow: none !important; }
     .marks-grid-wrapper { background: none !important; padding: 0 !important; border: none; overflow: visible !important; display: block; width: 210mm; }
     .marks-grid { display: block; width: 210mm; margin: 0; padding: 0; gap: 0; transform: scale(1) !important; background: none; position: absolute; left: 0; top: 0;}
-    
     .mark-card { width: 210mm !important; height: 148mm !important; margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; box-shadow: none !important; background: transparent !important; display: flex !important; align-items: center !important; justify-content: center !important; break-inside: avoid !important; page-break-inside: avoid !important; overflow: hidden !important; box-sizing: border-box !important; }
     .mark-card:nth-child(2n) { page-break-after: always !important; break-after: page !important;}
     .mark-card:last-child { page-break-after: auto !important; break-after: auto !important;}
-    
     .mark-inner * { color: #000 !important; border-color: #000 !important; }
   }
 
   .btn-back-to-top { position: fixed; bottom: 40px; right: 40px; padding: 14px 20px; background: var(--accent); color: var(--bg); border: none; border-radius: 50px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 24px rgba(0,0,0,0.15); cursor: pointer; opacity: 0; transform: translateY(20px); pointer-events: none; transition: all 0.4s ease; z-index: 1000; display: flex; align-items: center; gap: 8px;}
-  .btn-back-to-top i { font-size: 18px; }
   .btn-back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-
   .toast-container { position: fixed; top: 24px; right: 32px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
   .toast { padding: 16px 24px; border-radius: var(--radius-inner); font-size: 13px; font-weight: 500; color: var(--bg); display: flex; align-items: center; gap: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.2); transform: translateX(120%); opacity: 0; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: auto; max-width: 380px; line-height: 1.5; backdrop-filter: blur(10px); }
-  .toast i { font-size: 20px; }
   .toast.show { transform: translateX(0); opacity: 1; }
   .toast.error { background: var(--danger); }
   .toast.success { background: var(--accent); }
@@ -288,9 +224,7 @@
 
 <aside class="app-sidebar collapsed" id="appSidebar">
   <div class="sidebar-header">
-    <button class="sidebar-toggle" onclick="toggleSidebar()" title="折叠/展开菜单">
-      <i class="ph ph-list"></i>
-    </button>
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="ph ph-list"></i></button>
     <span class="sidebar-title">LOGISTICS OS</span>
   </div>
   <nav class="sidebar-nav">
@@ -379,8 +313,8 @@
           <div class="card-body">
             <div class="field-row three-cols" style="margin-bottom: 0;">
               <div><div class="stat-block"><label>总盒数 (BOXES)</label><div class="stat-value boxes" id="statBoxes">0</div></div></div>
-              <div><div class="stat-block"><label>总张数 (PCS)</label><div class="stat-value pcs" id="statPcs">0</div></div></div>
-              <div><div class="stat-block"><label>总平米 (SQM)</label><div class="stat-value sqm" id="statSqm">0.00</div></div></div>
+              <div><div class="stat-block"><label>总张数 (PCS)</label><div class="stat-value pcs" id="statPcs" style="color: var(--text);">0</div></div></div>
+              <div><div class="stat-block"><label>总平米 (SQM)</label><div class="stat-value sqm" id="statSqm" style="color: var(--text);">0.00</div></div></div>
             </div>
             
             <div id="reconAlert" style="display:none; flex-direction:column; align-items:flex-start; border-radius:12px; padding:16px 20px; margin-top:24px; font-size:12px; font-weight:500; gap:8px;">
@@ -457,64 +391,29 @@
   <main id="pageDocs" class="app-page">
     <div class="docs-container">
         <h2>🌟 系统概述</h2>
-        <p>Logistics OS V1.1 是一款专为<strong>版材出运与国际物流环节</strong>设计的唛头自动化排版与数据核对工具。系统内置了流程单记忆库与自动对账功能，最大程度降低人工制单及排版的错误率。</p>
-        
-        <h2>🛠️ 核心工作流：唛头生成</h2>
-        <h3>步骤 1：英文品名映射 (DICTIONARY)</h3>
+        <p>Logistics OS V2.0 是一款唛头自动化排版与数据核对工具。</p>
+        <h2>🛠️ 新增特性：支持大垛包装</h2>
         <ul>
-            <li><strong>功能说明：</strong>建立版材型号与英文品名的转换规则（一次设置，永久有效）。</li>
-            <li><strong>操作方法：</strong>展开面板，输入原厂代号（如 200-SG）及对应的英文品名（如 CTP）。系统在导入数据时，会自动将内部代号替换为标准的报关/唛头英文品名。</li>
-        </ul>
-        <h3>步骤 2：数据导入 (DATA IMPORT)</h3>
-        <ul>
-            <li><strong>2.1 上传流程单：</strong>优先点击“上传 Excel”导入生产流程单。</li>
-            <li><strong>2.2 导入打托明细（按整拼箱区分）：</strong>
-                <li><strong>LCL（拼箱）：</strong>继续点击“上传 Excel”，选择打托明细表导入。</li>
-                <li><strong>FCL（整柜）：</strong>选定 PDF 版打托明细的所有内容，复制并直接<strong>粘贴</strong>到界面的文本框中。</li>
-            </li>
-            <li><strong>💡 智能记忆特性：</strong>导入流程单后，系统会自动记忆当前批次不同尺寸（W×H×T）对应的“标准包装片数”。后续录入明细时会自动带入，极大提升制单效率。</li>
-        </ul>
-        <h3>步骤 3：基础信息 (BASIC INFO)</h3>
-        <ul>
-            <li><strong>客户代码：</strong>作为主品牌视觉标识，显示在左上角。</li>
-            <li><strong>目的地：</strong><strong>必填项</strong>，显示在右下角核心流向位置。</li>
-            <li><strong>PO NO. & SHIPPING CODE：</strong>建议填写，用于多维度溯源排版，系统会自动进行矩阵对齐。</li>
-        </ul>
-        <h3>步骤 4：数据汇总 & 智能核对</h3>
-        <ul>
-            <li>系统实时监控总盒数 (BOXES)、总张数 (PCS) 与总平米数 (SQM)。</li>
-            <li><strong>🛡️ 业财对账系统：</strong>绿色表示账实相符，完美一致；红色表示存在数据缺溢，强力拦截错发/漏发风险。</li>
-        </ul>
-        <h3>步骤 5：装箱清单色彩法则</h3>
-        <ul>
-            <li><strong>蓝色字体</strong> 代表用户需手动核对或输入的原始数据。</li>
-            <li><strong>绿色字体</strong> 代表系统通过记忆库自动填写的规则数据。</li>
-            <li><strong>黑色字体</strong> 代表不可更改的自动计算结果。</li>
-        </ul>
-        <h2>🖨️ 打印与导出</h2>
-        <ul>
-            <li><strong>快速跳页：</strong>在预览区顶部输入页码并回车，实现秒级跳转。</li>
-            <li><strong>智能命名规则：</strong>PDF 导出将自动命名为 <code>发货代码-国家-YYYY-MM-DD.pdf</code>，便于本地归档与检索。</li>
+            <li><strong>字典：</strong>导入流程单后，系统不仅抓取总数，还会自动构建尺寸与厚度的映射树。</li>
+            <li><strong>防呆：</strong>当输入打托数据存在多种厚度歧义时，系统会强制将其标红，要求手动补全，否则将禁止打印。</li>
+            <li><strong>FCL：</strong>支持包含 "+" 号的复杂混拼格式，无视排版直接抓取货物。</li>
         </ul>
     </div>
   </main>
 
   <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">
-    Created by Mark | OS V1.1 18/05/2026
-    <span id="busuanzi_container_site_pv" style="display: none;"> | 累计访问: <span id="busuanzi_value_site_pv"></span> 次</span>
+    Created by Mark | OS V2.0 26/05/2026
   </div>
 </div>
 
 <button id="backToTop" class="btn-back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})"><i class="ph ph-arrow-up"></i> 返回顶部</button>
 
-<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
 <script>
 // ==========================================
-// 🛡️ 核心数据逻辑
+// 全局状态管理 (保留 V1.1 结构，增加 truthDictionary)
 // ==========================================
-
-let pallets = []; let palletCount = 0; let currentTotalPcs = 0; let currentTotalSqm = 0; let targetData = null;
+let pallets = []; let palletCount = 0; let currentTotalPcs = 0; let currentTotalSqm = 0; 
+let targetData = null; let truthDictionary = {}; 
 let allCardsHTML = []; let currentPageIndex = 0; 
 const ORIGINAL_TITLE = document.title;
 
@@ -533,7 +432,8 @@ function saveData() {
         workOrderNo: document.getElementById('workOrderNo').value, 
         pallets: pallets, 
         palletCount: palletCount, 
-        targetData: targetData 
+        targetData: targetData,
+        truthDictionary: truthDictionary 
     }; 
     localStorage.setItem('ctp_logistics_data_v2', JSON.stringify(data)); 
     setSyncStatus(true); 
@@ -582,7 +482,6 @@ function toggleTheme() {
   html.setAttribute('data-theme', newTheme); localStorage.setItem('ctp_theme_v2', newTheme);
   document.getElementById('themeBtn').innerHTML = newTheme === 'dark' ? '<i class="ph ph-sun"></i> 浅色模式' : '<i class="ph ph-moon"></i> 深色模式';
 }
-
 function loadTheme() { if(localStorage.getItem('ctp_theme_v2') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.getElementById('themeBtn').innerHTML = '<i class="ph ph-sun"></i> 浅色模式'; } }
 
 const zoomSlider = document.getElementById('zoomSlider');
@@ -609,19 +508,20 @@ dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragov
 dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) handleFileUpload({ target: { files: e.dataTransfer.files } }); });
 
 function normalizeThickness(t) { 
+    if(t === "" || t === null || t === undefined) return "";
     const val = parseFloat(t); 
-    if (isNaN(val)) return t; 
+    if (isNaN(val)) return ""; 
     if (val >= 0.255 && val <= 0.30) return 0.30; 
     if (val >= 0.31 && val < 0.41) return 0.40; 
     return val; 
 }
 function escapeRegExp(string) { return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
-function getSmartPcsPerBox(w, h, t, isCustom, currentPcs) {
+function getSmartPcsPerBox(w, h, t, isCustom, currentPcs, type) {
     if (isCustom && currentPcs) return currentPcs; 
     let tStr = (typeof t === 'number' && !isNaN(t)) ? t.toFixed(2) : "0.30";
-    let specKey = `${w}x${h}x${tStr}`;
-    if (targetData && targetData.specs && targetData.specs[specKey] && targetData.specs[specKey].pcsPerBox) return targetData.specs[specKey].pcsPerBox;
+let specKey = type ? `${type}x${w}x${h}x${tStr}` : `${w}x${h}x${tStr}`;
+if (targetData && targetData.specs && targetData.specs[specKey] && targetData.specs[specKey].pcsPerBox) return targetData.specs[specKey].pcsPerBox;
     if (parseFloat(t) === 0.15) return 100;        
     let maxDim = Math.max(parseFloat(w) || 0, parseFloat(h) || 0);
     if (maxDim >= 1435) return 30;                 
@@ -651,15 +551,9 @@ function loadTypeMapping() {
     if (saved) { 
         try { 
             dynamicTypeMapping = JSON.parse(saved); 
-            if (!Array.isArray(dynamicTypeMapping) || dynamicTypeMapping.length === 0) {
-                dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping));
-            }
-        } catch(e) { 
-            dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping)); 
-        } 
-    } else { 
-        dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping)); 
-    } 
+            if (!Array.isArray(dynamicTypeMapping) || dynamicTypeMapping.length === 0) { dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping)); }
+        } catch(e) { dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping)); } 
+    } else { dynamicTypeMapping = JSON.parse(JSON.stringify(defaultTypeMapping)); } 
     renderMappingList(); 
 }
 
@@ -695,20 +589,23 @@ function loadData() {
       document.getElementById('poNo').value = data.poNo || ''; 
       document.getElementById('workOrderNo').value = data.workOrderNo || ''; 
       document.getElementById('destination').value = data.destination || ''; 
-      pallets = data.pallets || []; palletCount = data.palletCount || pallets.length; targetData = data.targetData || null; 
+      pallets = data.pallets || []; palletCount = data.palletCount || pallets.length; 
+      targetData = data.targetData || null; 
+      truthDictionary = data.truthDictionary || {}; 
       pallets.forEach(p => p.products.forEach(pr => { if (pr.isCustomPack === undefined) pr.isCustomPack = false; })); 
       renderPalletList(); generateMarks(); return true; 
   } catch(e) {} }
   return false;
 }
-function clearTargetData() { targetData = null; triggerSave(); generateMarks(); showToast("已清除流程单目标"); }
+function clearTargetData() { targetData = null; truthDictionary = {}; triggerSave(); generateMarks(); showToast("已清除对账目标"); }
 
 // ========================================================
-// 🛡️ 完整解析逻辑 (Excel & 记忆库 & 白名单混拼引擎)
+// 🛡️ 升级：流程单解析 & 真理字典构建
 // ========================================================
-
 function parseWorkOrder(data) {
-    let headerRowIdx = -1; let colW = -1, colH = -1, colT = -1, colQty = -1, colSqm = -1, colPcsPerBox = -1;
+    truthDictionary = {}; 
+    let headerRowIdx = -1; let colW = -1, colH = -1, colT = -1, colQty = -1, colSqm = -1, colPcsPerBox = -1, colType = -1;
+    
     for (let r = 0; r < Math.min(data.length, 50); r++) {
         if(!data[r]) continue;
         let rowStr = data[r].join("").replace(/\s/g, "");
@@ -716,6 +613,7 @@ function parseWorkOrder(data) {
             headerRowIdx = r;
             for (let c = 0; c < data[r].length; c++) {
                 let cell = String(data[r][c]).trim().replace(/\s/g, '');
+                if (cell === "版材型号") colType = c;
                 if (cell === "规格") colW = c;
                 if (cell === "厚度") colT = c;
                 if (cell === "数量") colQty = c;
@@ -726,10 +624,22 @@ function parseWorkOrder(data) {
         }
     }
 
+ let isCombinedSize = false;
     if (headerRowIdx !== -1 && colW !== -1) {
         for(let r = headerRowIdx + 1; r < Math.min(data.length, headerRowIdx + 15); r++) {
             if(!data[r]) continue;
-            let wVal = parseFloat(data[r][colW]);
+            let cellStr = String(data[r][colW] || "").replace(/\s/g, '').toLowerCase();
+            let parts = cellStr.split(/[*x×]/);
+            
+            // 智能识别：如果单格内自带了宽度和高度
+            if (parts.length >= 2 && parseFloat(parts[0]) > 100 && parseFloat(parts[1]) > 100) {
+                isCombinedSize = true;
+                colH = colW; 
+                break;
+            }
+            
+            // 传统降级方案
+            let wVal = Math.abs(parseFloat(cellStr.replace(/[()（）]/g, '')));
             if (!isNaN(wVal) && wVal > 100) {
                 if (parseFloat(data[r][colW+2]) > 100) colH = colW+2;
                 else if (parseFloat(data[r][colW+1]) > 100) colH = colW+1;
@@ -754,56 +664,81 @@ function parseWorkOrder(data) {
             if(cell === "合计") {
                 if(colQty !== -1 && parseFloat(row[colQty])) targetPcs = parseFloat(row[colQty]);
                 else if(c+1 < row.length && parseFloat(row[c+1]) > 1000) targetPcs = parseFloat(row[c+1]);
-                
                 if(colSqm !== -1 && parseFloat(row[colSqm])) targetSqm = parseFloat(row[colSqm]);
             }
         }
     }
+let currentType = "";
+    let currentTypeSheetsDefault = 50;
+    const { mappingDict } = buildMappingDictionaries(); // Fetch mapping rules
 
-    if (headerRowIdx !== -1 && colW !== -1 && colH !== -1) {
+ if (headerRowIdx !== -1 && colW !== -1 && colH !== -1) {
         for(let r = headerRowIdx + 1; r < data.length; r++) {
             const row = data[r]; if(!row) continue;
-            let wVal = parseFloat(row[colW]);
-            let hVal = parseFloat(row[colH]);
             
-            if (!isNaN(wVal) && wVal > 100 && !isNaN(hVal) && hVal > 100) {
-                let tNorm = 0.30;
+            let wVal = 0, hVal = 0, tNorm = 0.30;
+            
+            if (isCombinedSize) {
+                let sizeStr = String(row[colW] || "").replace(/\s/g, '').toLowerCase();
+                let parts = sizeStr.split(/[*x×]/);
+                if (parts.length >= 2) {
+                    wVal = Math.abs(parseFloat(parts[0]));
+                    hVal = Math.abs(parseFloat(parts[1]));
+                }
+                // 如果 Excel 直接写了 650*520*0.15，精准捕获厚度
+                if (parts.length >= 3) {
+                    let tRaw = parseFloat(parts[2]);
+                    if (!isNaN(tRaw) && tRaw > 0 && tRaw < 1.0) tNorm = normalizeThickness(tRaw);
+                } else if (colT !== -1) {
+                    let tRaw = parseFloat(row[colT]);
+                    if (!isNaN(tRaw) && tRaw >= 0.1 && tRaw < 1.0) tNorm = normalizeThickness(tRaw);
+                }
+            } else {
+                wVal = Math.abs(parseFloat(String(row[colW] || "").replace(/[()（）-]/g, '').trim()));
+                hVal = Math.abs(parseFloat(String(row[colH] || "").replace(/[()（）-]/g, '').trim()));
                 if (colT !== -1) {
                     let tRaw = parseFloat(row[colT]);
                     if (!isNaN(tRaw) && tRaw >= 0.1 && tRaw < 1.0) tNorm = normalizeThickness(tRaw);
                 }
+            }
+            
+            // --- 替换为新代码：暴力剥离中文注释 ---
+            if (colType !== -1 && row[colType]) {
+                // 剥离中文注释（如“无粉尘”），仅保留字母、数字和符号
+                let rawType = String(row[colType])
+                    .replace(/[\u4e00-\u9fa5]/g, '')     // 1. 斩草除根：剥离所有中文字符
+                    .replace(/[^\x20-\x7E]/g, '')        // 2. 剥离全角括号等非ASCII字符
+                    .trim()                              // 3. 剔除被抽空后留下的首尾空格
+                    .replace(/[\s\(\)\[\]\{\}]+/g, '-')  // 4. 将内部空格或英文括号转为中划线
+                    .replace(/-+$/, '')                  // 5. 剔除末尾多余的中划线
+                    .toUpperCase();
+                currentType = mappingDict[rawType] || rawType; 
+                currentTypeSheetsDefault = 50;
+            }
+           
+            if (!isNaN(wVal) && wVal > 100 && !isNaN(hVal) && hVal > 100) {
                 
                 let tStr = tNorm.toFixed(2);
-                let specKey = `${wVal}x${hVal}x${tStr}`;
-                let specObj = { pcsPerBox: null };
-                
                 if (colPcsPerBox !== -1) {
-                    let boxStr = String(row[colPcsPerBox] || "");
-                    let boxMatch = boxStr.match(/\d+/);
-                    if (boxMatch) {
-                        specObj.pcsPerBox = parseInt(boxMatch[0]);
-                    }
-                }
-                targetSpecs[specKey] = specObj;
-            }
-        }
-    } else {
-        for(let r=0; r<data.length; r++) {
-            const row = data[r]; if(!row) continue;
-            for(let c=0; c<row.length; c++) {
-                let wVal = parseFloat(row[c]);
-                if(!isNaN(wVal) && wVal > 100 && (String(row[c+1]).trim().toLowerCase() === 'x' || String(row[c+1]).trim() === '*')) {
-                    let hVal = parseFloat(row[c+2]);
-                    if(!isNaN(hVal) && hVal > 100) {
-                       let tRaw = 0.30;
-                       for(let k=c+3; k<row.length && k<c+8; k++) { 
-                           let temp = parseFloat(row[k]);
-                           if(!isNaN(temp) && temp >= 0.1 && temp < 1.0) { tRaw = temp; break; }
-                       }
-                       let tNorm = normalizeThickness(tRaw);
-                       let specKey = `${wVal}x${hVal}x${tNorm.toFixed(2)}`;
-                       targetSpecs[specKey] = { pcsPerBox: null };
-                    }
+                let boxStr = String(row[colPcsPerBox] || "");
+                let boxMatch = boxStr.match(/\d+/);
+                if (boxMatch) currentTypeSheetsDefault = parseInt(boxMatch[0]);
+}
+let sheets = currentTypeSheetsDefault;
+                
+                 let specKey = `${currentType}x${wVal}x${hVal}x${tStr}`;
+               targetSpecs[specKey] = { pcsPerBox: sheets };
+
+                // 核心：构建字典防撞树
+                if (currentType) {
+                    let tKey = `${wVal}x${hVal}x${currentType}`;
+                    let tRevKey = `${hVal}x${wVal}x${currentType}`;
+                    let setupDict = (k) => {
+                    if(!truthDictionary[k]) truthDictionary[k] = { gauges: [], sheets: sheets };
+                    if(!truthDictionary[k].gauges.includes(tNorm)) truthDictionary[k].gauges.push(tNorm);
+                    truthDictionary[k].sheets = sheets; // 每行都更新，确保最终取到该型号最准确的片数
+};
+                    setupDict(tKey); setupDict(tRevKey);
                 }
             }
         }
@@ -813,7 +748,7 @@ function parseWorkOrder(data) {
     if(woStr) document.getElementById('workOrderNo').value = woStr;
     if(customerStr) {
         document.getElementById('customer').value = customerStr; 
-        const countryMap = { "土耳其":"TURKEY", "德国":"GERMANY", "菲律宾":"PHILIPPINES", "韩国":"SOUTH KOREA", "南韩":"SOUTH KOREA", "印度":"INDIA", "俄罗斯":"RUSSIA", "荷兰":"NETHERLANDS", "拉脱维亚":"LATVIA", "阿联酋":"UNITED ARAB EMIRATES", "泰国":"THAILAND", "西班牙":"SPAIN", "波兰":"POLAND", "墨西哥":"MEXICO", "英国":"UNITED KINGDOM", "比利时":"BELGIUM", "希腊":"GREECE", "捷克":"CZECH REPUBLIC", "意大利":"ITALY", "新加坡":"SINGAPORE", "哥伦比亚":"COLOMBIA", "白俄罗斯":"BELARUS", "匈牙利":"HUNGARY", "美国":"UNITED STATES", "印度尼西亚":"INDONESIA", "印尼":"INDONESIA", "奥地利":"AUSTRIA", "越南":"VIETNAM", "卡塔尔":"INDIAN" };
+        const countryMap = { "土耳其":"TURKEY", "德国":"GERMANY", "菲律宾":"PHILIPPINES", "韩国":"SOUTH KOREA", "南韩":"SOUTH KOREA", "印度":"INDIA", "俄罗斯":"RUSSIA", "荷兰":"NETHERLANDS", "拉脱维亚":"LATVIA", "阿联酋":"UNITED ARAB EMIRATES", "泰国":"THAILAND", "西班牙":"SPAIN", "波兰":"POLAND", "墨西哥":"MEXICO", "英国":"UNITED KINGDOM", "比利时":"BELGIUM", "希腊":"GREECE", "捷克":"CZECH REPUBLIC", "意大利":"ITALY", "新加坡":"SINGAPORE", "哥伦比亚":"COLOMBIA", "白俄罗斯":"BELARUS", "匈牙利":"HUNGARY", "美国":"UNITED STATES", "印度尼西亚":"INDONESIA", "印尼":"INDONESIA", "奥地利":"AUSTRIA", "越南":"VIETNAM", "卡塔尔":"QATAR" };
         let mappedDest = customerStr.toUpperCase();
         for(let key in countryMap) { if(customerStr.includes(key)) { mappedDest = countryMap[key]; break; } }
         document.getElementById('destination').value = mappedDest;
@@ -822,185 +757,189 @@ function parseWorkOrder(data) {
 
     targetData = { pcs: targetPcs, sqm: targetSqm, specs: targetSpecs };
     triggerSave(); generateMarks(); 
-    showToast("📝 流程单解析成功！", "success");
+    showToast(`📝 流程单解析成功！构建字典 ${Object.keys(truthDictionary).length} 组`, "success");
 }
 
+// ========================================================
+// 🛡️ 升级：FCL 全局词法状态机 (处理混拼与厚度歧义阻断)
+// ========================================================
 function processTextToPallets(text) {
-    // 🛡️ 木托盘白名单 (内置真实工厂尺寸，防误删防漏报双引擎)
-    const WOOD_PALLETS_WHITELIST = [
-        '1795x1420', '1745x1420', '1570x1290', '1550x1250', '1410x1150',
-        '1240x1020', '1220x990', '1200x880', '1140x910', '1140x880',
-        '1110x900', '1110x880', '1110x850', '1040x800', '1000x840',
-        '990x745', '910x725', '890x665', '870x630', '870x705',
-        '835x645', '790x670', '780x590', '920x660', '970x635'
-    ];
-
-    text = text.replace(/[$~]/g, ' ').replace(/\n/g, ' ');
-
-    const { mappingDict, directTypes } = buildMappingDictionaries();
-    const allKnownTypes = [...Object.keys(mappingDict), ...directTypes].sort((a,b) => b.length - a.length);
-
-    if (allKnownTypes.length === 0) { 
-        showToast("请先在【英文品名】配置至少一条识别规则！", "warning"); 
-        return []; 
-    }
-
-    const safeTypes = allKnownTypes.map(escapeRegExp);
-    const typeRegex = new RegExp(`(${safeTypes.join('|')})`, 'gi');
-    text = text.replace(typeRegex, (match) => ` __TYPE__${mappingDict[match.toUpperCase()] || match.toUpperCase()}__ `);
-
-    // ==========================================
-    // 🛡️ 自动解胶引擎 V2 (高精度长度判定)
-    // ==========================================
-    // 1) 修复 尺寸连尺寸
-    text = text.replace(/([-*xX×])(\d{6,8})([-*xX×])/g, (match, sep1, chunk, sep2) => {
-        let h1, w2;
-        if (chunk.length === 6) { h1 = chunk.slice(0,3); w2 = chunk.slice(3); }
-        else if (chunk.length === 8) { h1 = chunk.slice(0,4); w2 = chunk.slice(4); }
-        else if (chunk.length === 7) {
-            if (chunk[3] !== '0') { h1 = chunk.slice(0,3); w2 = chunk.slice(3); }
-            else { h1 = chunk.slice(0,4); w2 = chunk.slice(4); }
-        } else { return match; }
-        return `${sep1}${h1} ${w2}${sep2}`;
-    });
-
-    // 2) 修复 箱数连尺寸 (长度必须超过5才切分，保护4位尺寸不被误杀)
-    text = text.replace(/(\b\d{5,7})([-*xX×]\d{3,4}\b)/g, (match, prefix, suffix) => {
-        let w = prefix.slice(-3);
-        let box = prefix.slice(0, -3);
-        if (w.startsWith('0') || prefix.length >= 6) {
-            w = prefix.slice(-4);
-            box = prefix.slice(0, -4);
-        }
-        return `${box} ${w}${suffix}`;
-    });
-
-    const dimRegex = /(\d{2,}(?:\.\d+)?)\s*[-*xX×]\s*(\d{2,}(?:\.\d+)?)(?:\s*[-*xX×]\s*(\d+(?:\.\d+)?))?/g;
-    text = text.replace(dimRegex, (match, p1, p2, p3) => {
-        let tPart = p3 ? `x${p3}` : '';
-        return ` __DIM__${p1}x${p2}${tPart}__ `;
-    });
-
-    text = text.replace(/\+/g, ' __PLUS__ ');
-    text = text.replace(/\[PALLET\]/g, ' __PLUS__ '); 
-
-    let rawTokens = text.split(/\s+/).filter(t => t.trim() !== '');
+    const { mappingDict } = buildMappingDictionaries();
     
-    let parsedPallets = [];
-    let currentPallet = [];
-    let currentDim = null;
-    let currentType = getDefaults().productType;
-    let boxesAddedToCurrentDim = 0; 
-    let idCounter = 0;
-    let specMemoryUsed = 0;
+    // 暴力脱胶与降噪
+    text = text.replace(/[*X×]/gi, 'x');
+    text = text.replace(
+        /([A-Za-z]+[A-Za-z0-9\-]*)(\d{3,4}x)/g,
+        '$1 $2'
+    );
+    text = text.replace(/\+/g, ' + ');
+    text = text.replace(/\[PALLET\]/gi, ' [PALLET] ');
+    
+    const ignoreList = ['B0', 'B1', 'B2', 'B2C3', 'B3', 'B3C5', 'B4'];
+    let rawTokens = text.replace(/\n/g, ' ').split(/\s+/).filter(t => t && !ignoreList.includes(t.toUpperCase()));
+    
+    const isSizeWithGauge = (t) => /^\d{3,4}x\d{3,4}x\d+(\.\d+)?$/.test(t);
+    const isSizeNormal = (t) => /^\d{3,4}x\d{3,4}$/.test(t);
+    const isQty = (t) => /^\d{1,4}$/.test(t);
+    const isBulkMultiplier = (t) => /^\d{3,4}x[1-9]\d{0,1}$/.test(t); 
+    const isPlus = (t) => t === '+';
+    const isPalletBreak = (t) => t === '[PALLET]';
+    const isType = (t) => /^[A-Za-z0-9\-]+$/.test(t) && !isSizeNormal(t) && !isSizeWithGauge(t) && !isQty(t) && !isBulkMultiplier(t);
 
-    for(let i = 0; i < rawTokens.length; i++) {
-        let tok = rawTokens[i];
+    let stream = rawTokens.filter(t => isSizeNormal(t) || isSizeWithGauge(t) || isQty(t) || isBulkMultiplier(t) || isType(t) || isPlus(t) || isPalletBreak(t));
 
-        if(tok.startsWith('__TYPE__')) {
-            currentType = tok.replace('__TYPE__', '').replace('__', '');
+    // 🌟 恢复原版优秀的 pendingPallets 机制
+    let finalPallets = []; let pendingPallets = []; let currentPallet = []; 
+    let currentType = getDefaults().productType; 
+    let hasDictError = false;
+
+    let activeSize = null;
+    let activeExplicitGauge = null;
+    let activeSizeUsed = false;
+
+    for (let i = 0; i < stream.length; i++) {
+        let token = stream[i];
+        
+        // 【修正点】当遇到 + 号时，立刻把当前的托盘封存到待结算区，而不是强行合并！
+        if (isPlus(token)) {
+            if (currentPallet.length > 0) { 
+                pendingPallets.push(currentPallet); 
+                currentPallet = []; 
+            }
+            continue; 
         }
-        else if(tok.startsWith('__DIM__')) {
-            let dimStr = tok.replace('__DIM__', '').replace('__', '');
+        
+        if (isPalletBreak(token)) {
+            finalPallets.push(...pendingPallets);
+            if (currentPallet.length > 0) finalPallets.push(currentPallet);
+            pendingPallets = []; currentPallet = [];
+            continue;
+        }
+
+        if (isType(token)) { 
+            let upper = token.toUpperCase().replace(/[^\x20-\x7E\u4e00-\u9fa5]/g, '');
+            currentType = mappingDict[upper] || upper;
+            continue; 
+        }
+
+        if (isSizeNormal(token) || isSizeWithGauge(token)) {
+            let nextToken = (i + 1 < stream.length) ? stream[i + 1] : null;
             
-            // 【混合判定核心】：上一个尺寸没有分到箱数
-            if (currentDim !== null && boxesAddedToCurrentDim === 0) {
-                let dimKey = `${currentDim.w}x${currentDim.h}`;
+            if (nextToken && (isQty(nextToken) || isBulkMultiplier(nextToken))) {
+                activeSize = token;
+                activeExplicitGauge = isSizeWithGauge(token) ? parseFloat(token.split('x')[2]) : null;
+                activeSizeUsed = false; 
+                continue; 
+            } else {
+                // 【修正点】遇到无数量的底托尺寸 -> 将待结算区和当前区的所有托盘，作为独立托盘进行最终结算
+                finalPallets.push(...pendingPallets);
+                if (currentPallet.length > 0) finalPallets.push(currentPallet);
+                pendingPallets = []; currentPallet = [];
+                activeSize = null; 
+                continue;
+            }
+        }
+
+        if (isQty(token) || isBulkMultiplier(token)) {
+            if (!activeSize) continue; 
+
+            let qtyList = []; 
+            if (isBulkMultiplier(token)) {
+                let parts = token.split('x');
+                let pcs = parseInt(parts[0]);
+                let count = parseInt(parts[1]);
+                for(let k=0; k<count; k++) qtyList.push({ val: pcs, isBulk: true });
+            } else {
+                let val = parseInt(token);
+                let isBulk = val > 100; 
+                qtyList.push({ val: val, isBulk: isBulk });
+            }
+
+            for (let q of qtyList) {
+                // 大垛乘法产生的自身裂变
+                if (activeSizeUsed) {
+                    if (currentPallet.length > 0) { 
+                        finalPallets.push(currentPallet); 
+                        currentPallet = []; 
+                    }
+                }
+
+                let wVal = parseFloat(activeSize.split('x')[0]);
+                let hVal = parseFloat(activeSize.split('x')[1]);
                 
-                if (WOOD_PALLETS_WHITELIST.includes(dimKey)) {
-                    // 命中白名单：确认为木托盘，正常封箱并静默丢弃该尺寸
-                    if (currentPallet.length > 0) {
-                        idCounter++;
-                        parsedPallets.push({ id: idCounter, isOpen: false, products: [...currentPallet] });
-                        currentPallet = [];
+                let truthKey = `${activeSize.split('x').slice(0,2).join('x')}x${currentType}`; 
+                let truthData = truthDictionary[truthKey];
+                
+                let finalGauge = ""; 
+                let finalSheetsPerBox = "";
+                
+                if (truthData) {
+                    if (activeExplicitGauge !== null) {
+                        let normExplicit = normalizeThickness(activeExplicitGauge);
+                        if (truthData.gauges.includes(normExplicit)) {
+                            finalGauge = normExplicit;
+                            finalSheetsPerBox = truthData.sheets;
+                        } else {
+                            hasDictError = true; 
+                            finalSheetsPerBox = truthData.sheets;
+                        }
+                    } else {
+                        if (truthData.gauges.length === 1) {
+                            finalGauge = truthData.gauges[0];
+                            finalSheetsPerBox = truthData.sheets;
+                        } else {
+                            hasDictError = true; 
+                            finalSheetsPerBox = truthData.sheets; 
+                        }
                     }
                 } else {
-                    // 未命中白名单：极其可疑！触发动态异常预警
-                    showToast(`⚠️ 警告：检测到尺寸 [${dimKey}] 后面没有箱数！请核对是否漏填。`, 'warning');
-                    // 依然封箱，防止后续数据错乱挂靠
-                    if (currentPallet.length > 0) {
-                        idCounter++;
-                        parsedPallets.push({ id: idCounter, isOpen: false, products: [...currentPallet] });
-                        currentPallet = [];
-                    }
+                    hasDictError = true;
                 }
-            }
-            
-            let parts = dimStr.split('x');
-            currentDim = { w: parseFloat(parts[0]), h: parseFloat(parts[1]), t: parts[2] ? parseFloat(parts[2]) : getDefaults().thickness };
-            boxesAddedToCurrentDim = 0; 
-        }
-        else if(tok === '__PLUS__') {
-            if (currentPallet.length > 0) {
-                idCounter++;
-                parsedPallets.push({ id: idCounter, isOpen: false, products: [...currentPallet] });
-                currentPallet = [];
-            }
-        }
-        else if(!isNaN(tok) && parseFloat(tok) > 0 && parseFloat(tok) < 5000) {
-            let boxes = parseInt(tok);
-            if (currentDim) {
-                let tNorm = normalizeThickness(currentDim.t);
-                let tStr = tNorm.toFixed(2);
-                let specKey = `${currentDim.w}x${currentDim.h}x${tStr}`;
-                let matchedSpec = (targetData && targetData.specs) ? targetData.specs[specKey] : null;
 
-                let autoPcsPb = getSmartPcsPerBox(currentDim.w, currentDim.h, tNorm, false, null);
-                let isCustom = false;
-                if (matchedSpec && matchedSpec.pcsPerBox) {
-                    autoPcsPb = matchedSpec.pcsPerBox;
-                    isCustom = true;
-                    specMemoryUsed++;
-                }
+                let p_boxes = q.isBulk ? 1 : q.val;
+                let p_pcsPerBox = q.isBulk ? q.val : finalSheetsPerBox;
+                let p_pcs = (p_boxes && p_pcsPerBox) ? (p_boxes * p_pcsPerBox) : 0; 
 
                 currentPallet.push({
-                    w: currentDim.w,
-                    h: currentDim.h,
-                    thickness: tNorm,
-                    type: currentType,
-                    boxes: boxes,
-                    pcsPerBox: autoPcsPb,
-                    pcs: boxes * autoPcsPb,
-                    isCustomPack: isCustom
+                    w: wVal, h: hVal, thickness: finalGauge, type: currentType,
+                    boxes: p_boxes, pcsPerBox: p_pcsPerBox, pcs: p_pcs,
+                    isCustomPack: (activeExplicitGauge !== null || (truthData && truthData.sheets) || q.isBulk)
                 });
-                
-                boxesAddedToCurrentDim++; 
+
+                activeSizeUsed = true; 
             }
         }
     }
 
-    // 结尾校验：最后一个拿在手里的尺寸如果没箱数，也要过一遍白名单
-    if (currentDim !== null && boxesAddedToCurrentDim === 0) {
-        let dimKey = `${currentDim.w}x${currentDim.h}`;
-        if (!WOOD_PALLETS_WHITELIST.includes(dimKey)) {
-             showToast(`⚠️ 警告：末尾发现异常尺寸 [${dimKey}] 未填写箱数！`, 'warning');
-        }
-    }
+    // 兜底结尾未结算的数据
+    if (currentPallet.length > 0) pendingPallets.push(currentPallet);
+    if (pendingPallets.length > 0) finalPallets.push(...pendingPallets);
 
-    if (currentPallet.length > 0) {
-        idCounter++;
-        parsedPallets.push({ id: idCounter, isOpen: false, products: [...currentPallet] });
-    }
+    if (hasDictError) showToast("🛑 阻断：部分产品字典未匹配或存在厚度歧义！请在下方红框中手动补全。", "error");
+    else if (finalPallets.length > 0) showToast(`📦 解析成功！共 ${finalPallets.length} 托。`, "success");
 
-    if(specMemoryUsed > 0) {
-        setTimeout(() => showToast(`🧠 记忆库触发：自动应用了 ${specMemoryUsed} 组流程单包装要求`), 1000);
-    }
-
+    let parsedPallets = [];
+    finalPallets.forEach((palletProducts, idx) => {
+        let needsFix = palletProducts.some(p => p.thickness === "" || p.pcsPerBox === "");
+        parsedPallets.push({ id: idx + 1, isOpen: needsFix, products: palletProducts });
+    });
     return parsedPallets;
 }
 
 function parsePastedText() {
     let text = document.getElementById('pasteInput').value; if (!text.trim()) { showToast('文本框为空，请先粘贴内容！', 'error'); return; }
     let newPallets = processTextToPallets(text); if (newPallets.length === 0) { showToast("未能识别到有效打托数据。", 'error'); return; }
-    if (pallets.length > 0) { if (confirm(`识别出 ${newPallets.length} 个托盘。是否【清空】现有列表并覆盖？`)) { pallets = newPallets; palletCount = newPallets.length; } else { newPallets.forEach(np => { palletCount++; np.id = palletCount; pallets.push(np); }); } } else { pallets = newPallets; palletCount = newPallets.length; }
-    document.getElementById('pasteInput').value = ''; renderPalletList(); generateMarks(); triggerSave(); showToast(`📦 成功生成 ${newPallets.length} 个托盘`);
+    if (pallets.length > 0) { if (confirm(`识别出 ${newPallets.length} 个托盘。是否覆盖现有数据？`)) { pallets = newPallets; palletCount = newPallets.length; } else { newPallets.forEach(np => { palletCount++; np.id = palletCount; pallets.push(np); }); } } else { pallets = newPallets; palletCount = newPallets.length; }
+    
+    pallets.forEach((p, idx) => { p.id = idx + 1; }); palletCount = pallets.length;
+    document.getElementById('pasteInput').value = ''; renderPalletList(); generateMarks(); triggerSave();
 }
 
 function parseExcelData(arrayBuffer) {
   try {
     const wb = XLSX.read(arrayBuffer, {type: 'array'}); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws, {header: 1, defval: ""});
-    
     if (data.length === 0) return showToast("表格为空！", 'error');
+    
     let isWorkOrder = false; 
     for(let i=0; i<Math.min(15, data.length); i++) { 
         let rs = data[i].join("").replace(/\s/g, ""); 
@@ -1008,33 +947,45 @@ function parseExcelData(arrayBuffer) {
     }
     if (isWorkOrder) return parseWorkOrder(data);
 
-    let fullText = ""; 
-    for (let r = 0; r < data.length; r++) { 
-        if (!data[r]) continue; 
-        for (let c = 0; c < data[r].length; c++) { 
-            let val = String(data[r][c] || "").replace(/[\u00A0]+/g, ' ').trim(); 
-            if (val) fullText += val + " [PALLET] "; 
-        } 
+// 强化 LCL 拼装（工业级防粘连修复版）
+let fullText = "";
+
+for (let r = 0; r < data.length; r++) {
+
+    if (!data[r]) continue;
+
+    let rowTokens = [];
+
+    for (let c = 0; c < data[r].length; c++) {
+
+        let val = String(data[r][c] || "")
+            .replace(/\r/g, '')          // 防 Excel CRLF 污染
+            .replace(/[\u00A0]+/g, ' ') // 防 NBSP
+            .trim();
+
+        if (val) rowTokens.push(val);
     }
-    
+
+    // 保留原始行结构，禁止压缩为空格流
+    if (rowTokens.length > 0) {
+        fullText += rowTokens.join("\n") + "\n[PALLET]\n";
+    }
+}
+        
     let newPallets = processTextToPallets(fullText); 
     if (newPallets.length === 0) return showToast("未能识别到打托数据", 'error');
     if (pallets.length > 0) { 
         if (confirm(`是否覆盖现有数据？`)) { pallets = newPallets; palletCount = newPallets.length; } 
         else { newPallets.forEach(np => { palletCount++; np.id = palletCount; pallets.push(np); }); } 
-    } else { 
-        pallets = newPallets; palletCount = newPallets.length; 
-    }
-    
-    renderPalletList(); generateMarks(); triggerSave(); showToast(`📦 导入成功！已排版 ${newPallets.length} 个托盘`);
-  } catch (err) { 
-      console.error(err);
-      showToast("读取 Excel 失败。数据结构异常。", 'error'); 
-  }
+    } else { pallets = newPallets; palletCount = newPallets.length; }
+
+    pallets.forEach((p, idx) => { p.id = idx + 1; }); palletCount = pallets.length;
+    renderPalletList(); generateMarks(); triggerSave();
+  } catch (err) { console.error(err); showToast("读取 Excel 失败。数据结构异常。", 'error'); }
 }
 
 // ==========================================
-// 🎨 打印排版引擎：横向切层 + 三层绝对对齐 + 动态缩放
+// 🎨 打印排版引擎：保留 V1.1 原汁原味
 // ==========================================
 
 function getStrLen(str) { return str ? str.replace(/[\u0100-\uffff]/g, "aa").length : 0; }
@@ -1064,8 +1015,9 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
 
   let rows = products.map((p, index) => {
     let rowStyle = (index === products.length - 1) ? tdSt.replace('border-bottom: 1px dashed #ccc;', 'border-bottom: none;') : tdSt;
+    let tValStr = (typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : (p.thickness || "???");
     return `<tr>
-      <td style="${rowStyle} text-align:left;">${p.w}×${p.h}×${(typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : "0.30"}</td>
+      <td style="${rowStyle} text-align:left;">${p.w}×${p.h}×${tValStr}</td>
       <td style="${rowStyle} text-align:left; word-break: break-all;">${(p.type||'').replace(/\s+/g, '&nbsp;')}</td>
       <td style="${rowStyle} text-align:right;">${(p.pcs||0).toLocaleString()}</td>
       <td style="${rowStyle} text-align:right;">${(p.boxes||0).toLocaleString()}</td>
@@ -1082,7 +1034,6 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
   let safeShipCode = (workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
   let safeDest = (destination||'').trim().replace(/\s+/g, '&nbsp;'); 
   
-  // 强制默认显示逻辑
   let poStr = [];
   if(safePo) poStr.push(`PO NO.: ${safePo}`);
   if(safeShipCode) poStr.push(`SHIPPING CODE: ${safeShipCode}`);
@@ -1155,10 +1106,7 @@ function renderPage() {
     const totalPagesSpan = document.getElementById('totalPages'); 
     
     if (allCardsHTML.length === 0) { 
-        grid.innerHTML = ''; 
-        pageInput.value = 0;
-        totalPagesSpan.innerText = '0'; 
-        return; 
+        grid.innerHTML = ''; pageInput.value = 0; totalPagesSpan.innerText = '0'; return; 
     } 
     
     if (currentPageIndex >= allCardsHTML.length) currentPageIndex = allCardsHTML.length - 1; 
@@ -1173,19 +1121,16 @@ function prevPage() { if(currentPageIndex > 0) { currentPageIndex--; renderPage(
 function nextPage() { if(currentPageIndex < allCardsHTML.length - 1) { currentPageIndex++; renderPage(); } }
 
 function jumpToPage(val) {
-    let p = parseInt(val) - 1;
-    if(isNaN(p)) p = 0;
-    if(p < 0) p = 0;
+    let p = parseInt(val) - 1; if(isNaN(p)) p = 0; if(p < 0) p = 0;
     if(p >= allCardsHTML.length) p = allCardsHTML.length - 1;
-    currentPageIndex = p;
-    renderPage();
+    currentPageIndex = p; renderPage();
 }
 
 function generateMarks() {
   allCardsHTML = []; 
   const customer = document.getElementById('customer').value.toUpperCase() || ''; const poNo = document.getElementById('poNo').value.toUpperCase() || '';
   const workOrderNo = document.getElementById('workOrderNo').value.toUpperCase() || ''; const destination = document.getElementById('destination').value.toUpperCase() || '';
-  const origin = 'MADE IN CHINA'; const total = pallets.length;
+  const total = pallets.length;
   let globalBoxes = 0; let globalPcs = 0; let globalSqm = 0;
 
   pallets.forEach((pallet, idx) => {
@@ -1250,7 +1195,7 @@ function updateReconciliation() {
 }
 
 // ==========================================
-// 装箱清单与交互操作
+// V1.1 原生 UI 渲染层 (绝不更改 DOM)
 // ==========================================
 
 function renderPalletList() {
@@ -1259,7 +1204,7 @@ function renderPalletList() {
   pallets.forEach((pallet, idx) => {
     const div = document.createElement('div'); div.className = `pallet-item ${pallet.isOpen ? 'open' : ''}`; div.id = `pallet-item-${pallet.id}`;
     let palletTotalPcs = 0; pallet.products.forEach(p => { palletTotalPcs += (parseFloat(p.pcs) || 0); });
-    let summary = pallet.products.map(p => { if(!p.w || !p.boxes) return ''; return `${p.w}x${p.h}x${(typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : "0.30"} ${p.type} ${p.boxes}箱`; }).filter(s => s).join(' / ');
+    let summary = pallet.products.map(p => { if(!p.w || !p.boxes) return ''; return `${p.w}x${p.h}x${(typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : (p.thickness || "???")} ${p.type} ${p.boxes}箱`; }).filter(s => s).join(' / ');
     if (summary) { summary += ` | 总张数: ${palletTotalPcs}`; }
     
     let headerHTML = `
@@ -1281,18 +1226,18 @@ function renderPalletList() {
 function renderProductRow(palletId, pi, p) {
   const wVal = (p.w !== undefined && p.w !== '') ? p.w : ''; 
   const hVal = (p.h !== undefined && p.h !== '') ? p.h : ''; 
-  const tVal = (p.thickness !== undefined && p.thickness !== '') ? parseFloat(p.thickness).toFixed(2) : ''; 
+  const tVal = (typeof p.thickness === 'number' && !isNaN(p.thickness)) ? p.thickness.toFixed(2) : ''; 
   const bVal = (p.boxes !== undefined && p.boxes !== '') ? p.boxes : ''; 
   const pbVal = (p.pcsPerBox !== undefined && p.pcsPerBox !== '') ? p.pcsPerBox : ''; 
   const pcsVal = (p.pcs !== undefined && p.pcs !== '') ? p.pcs : 0;
   
+  // 核心阻断 UI 映射：由于后台将歧义数据的 thickness 置为空字符串，此处会自然触发 input-warning
   let wErr = !p.w ? 'input-warning' : '';
   let hErr = !p.h ? 'input-warning' : '';
   let tErr = !p.thickness ? 'input-warning' : '';
   let typeErr = !p.type ? 'input-warning' : '';
   let bErr = !p.boxes ? 'input-warning' : '';
   let pbErr = !p.pcsPerBox ? 'input-warning' : '';
-  let packClass = p.isCustomPack ? 'custom-pack-input' : '';
   
   return `
     <div class="product-row-single" id="prod-${palletId}-${pi}">
@@ -1305,7 +1250,7 @@ function renderProductRow(palletId, pi, p) {
       </div>
       <input class="font-mono ${typeErr}" style="width:100%; text-align:center;" type="text" value="${p.type||'CTP'}" placeholder="Type" oninput="updateProduct(${palletId},${pi},'type',this.value)">
       <input class="font-mono ${bErr}" style="width:100%; text-align:center;" type="number" value="${bVal}" oninput="updateProduct(${palletId},${pi},'boxes',this.value)">
-      <input class="font-mono ${pbErr} ${packClass}" style="width:100%; text-align:center;" type="number" value="${pbVal}" oninput="updateProduct(${palletId},${pi},'pcsPerBox',this.value)">
+      <input class="font-mono ${pbErr}" style="width:100%; text-align:center;" type="number" value="${pbVal}" oninput="updateProduct(${palletId},${pi},'pcsPerBox',this.value)">
       <div class="total-pcs-cell" style="width:100%; padding:10px 0; text-align:center;">${pcsVal.toLocaleString()}</div>
       <button class="btn-icon" style="background: transparent;" onclick="removeProduct(${palletId},${pi})" tabindex="-1"><i class="ph ph-x"></i></button>
     </div>
@@ -1313,9 +1258,9 @@ function renderProductRow(palletId, pi, p) {
 }
 
 function togglePallet(id) { const p = pallets.find(p => p.id === id); if (p) { p.isOpen = !p.isOpen; renderPalletList(); triggerSave(); } }
-function addPallet() { let defaultT = getDefaults().thickness; pallets.push({ id: ++palletCount, isOpen: true, products: [{ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: 50, pcs: 0, type: getDefaults().productType, isCustomPack: false }] }); renderPalletList(); generateMarks(); triggerSave(); }
+function addPallet() { let defaultT = getDefaults().thickness; pallets.push({ id: ++palletCount, isOpen: true, products: [{ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: '', pcs: 0, type: getDefaults().productType, isCustomPack: false }] }); renderPalletList(); generateMarks(); triggerSave(); }
 function removePallet(id, e) { e.stopPropagation(); pallets = pallets.filter(p => p.id !== id); renderPalletList(); generateMarks(); triggerSave(); }
-function addProduct(id) { const p = pallets.find(p => p.id === id); if (p) { let defaultT = getDefaults().thickness; p.products.push({ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: 50, pcs: 0, type: getDefaults().productType, isCustomPack: false }); renderPalletList(); generateMarks(); triggerSave(); } }
+function addProduct(id) { const p = pallets.find(p => p.id === id); if (p) { let defaultT = getDefaults().thickness; p.products.push({ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: '', pcs: 0, type: getDefaults().productType, isCustomPack: false }); renderPalletList(); generateMarks(); triggerSave(); } }
 function removeProduct(id, pi) { const p = pallets.find(p => p.id === id); if (p && p.products.length > 1) { p.products.splice(pi, 1); renderPalletList(); generateMarks(); triggerSave(); } }
 
 function updateProduct(palletId, pi, field, value) {
@@ -1327,7 +1272,7 @@ function updateProduct(palletId, pi, field, value) {
     if (field === 'thickness') { pr.thickness = normalizeThickness(pr.thickness); }
     
     if (field !== 'pcsPerBox') { 
-        pr.pcsPerBox = getSmartPcsPerBox(pr.w, pr.h, pr.thickness, pr.isCustomPack, pr.pcsPerBox); 
+        pr.pcsPerBox = getSmartPcsPerBox(pr.w, pr.h, pr.thickness, pr.isCustomPack, pr.pcsPerBox, pr.type);
     }
     pr.pcs = (parseFloat(pr.boxes) || 0) * (parseFloat(pr.pcsPerBox) || 0);
     
@@ -1336,10 +1281,7 @@ function updateProduct(palletId, pi, field, value) {
         const inputs = wrapper.querySelectorAll('input');
         if(field !== 'pcsPerBox' && !pr.isCustomPack) { 
             inputs[5].value = pr.pcsPerBox; 
-            inputs[5].classList.remove('custom-pack-input'); 
-        } else if(field === 'pcsPerBox') {
-            inputs[5].classList.add('custom-pack-input');
-        }
+        } 
         
         if (field === 'w' && pr.w) inputs[0].classList.remove('input-warning');
         if (field === 'h' && pr.h) inputs[1].classList.remove('input-warning');
@@ -1448,7 +1390,7 @@ function validateAndPrint() {
      let sqmMatch = (!targetData.sqm || Math.abs(currentTotalSqm - targetData.sqm) <= 0.1);
      if (!pcsMatch || !sqmMatch) {
          let diffPcs = currentTotalPcs - (targetData.pcs || 0); let msg = `⚠️ 严重警告：打托数据与流程单严重不符！\n\n`;
-         if(!pcsMatch) msg += `[总张数] 相差: ${diffPcs > 0 ? '+'+pcsDiff : pcsDiff} 张\n`; if(!sqmMatch) msg += `[总平米] 不一致\n`; msg += `\n确认属于特殊情况强制打印？`;
+         if(!pcsMatch) msg += `[总张数] 相差: ${diffPcs > 0 ? '+'+diffPcs : diffPcs} 张\n`; if(!sqmMatch) msg += `[总平米] 不一致\n`; msg += `\n确认属于特殊情况强制打印？`;
          if(!confirm(msg)) return; 
      }
   }
@@ -1503,4 +1445,4 @@ async function exportToPDF() {
 window.onload = () => { init(); };
 </script>
 </body>
-</html>
+</html>·
