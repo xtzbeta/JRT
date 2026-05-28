@@ -748,15 +748,15 @@ let sheets = currentTypeSheetsDefault;
                  let specKey = `${currentType}x${wVal}x${hVal}x${tStr}`;
                targetSpecs[specKey] = { pcsPerBox: sheets };
 
-                // 核心：构建字典防撞树
+               // 核心：构建字典防撞树（sheetsOptions 数组，支持同规格多种包装片数）
                 if (currentType) {
                     let tKey = `${wVal}x${hVal}x${currentType}`;
                     let tRevKey = `${hVal}x${wVal}x${currentType}`;
                     let setupDict = (k) => {
-                    if(!truthDictionary[k]) truthDictionary[k] = { gauges: [], sheets: sheets };
-                    if(!truthDictionary[k].gauges.includes(tNorm)) truthDictionary[k].gauges.push(tNorm);
-                    truthDictionary[k].sheets = sheets; // 每行都更新，确保最终取到该型号最准确的片数
-};
+                        if (!truthDictionary[k]) truthDictionary[k] = { gauges: [], sheetsOptions: [] };
+                        if (!truthDictionary[k].gauges.includes(tNorm)) truthDictionary[k].gauges.push(tNorm);
+                        if (!truthDictionary[k].sheetsOptions.includes(sheets)) truthDictionary[k].sheetsOptions.push(sheets);
+                    };
                     setupDict(tKey); setupDict(tRevKey);
                 }
             }
@@ -892,23 +892,41 @@ function processTextToPallets(text) {
                 let finalGauge = ""; 
                 let finalSheetsPerBox = "";
                 
-                if (truthData) {
+             if (truthData) {
+                    // ── 厚度判断（与原逻辑一致）──
                     if (activeExplicitGauge !== null) {
                         let normExplicit = normalizeThickness(activeExplicitGauge);
                         if (truthData.gauges.includes(normExplicit)) {
                             finalGauge = normExplicit;
-                            finalSheetsPerBox = truthData.sheets;
                         } else {
-                            hasDictError = true; 
-                            finalSheetsPerBox = truthData.sheets;
+                            hasDictError = true;
                         }
                     } else {
                         if (truthData.gauges.length === 1) {
                             finalGauge = truthData.gauges[0];
-                            finalSheetsPerBox = truthData.sheets;
                         } else {
-                            hasDictError = true; 
-                            finalSheetsPerBox = truthData.sheets; 
+                            hasDictError = true;
+                        }
+                    }
+
+                    // ── 包装片数判断（新逻辑：按 isBulk 分流查字典）──
+                    if (q.isBulk) {
+                        // 大垛：从字典取 >100 的包装片数
+                        const bulkOptions = (truthData.sheetsOptions || []).filter(s => s > 100);
+                        if (bulkOptions.length === 1) {
+                            finalSheetsPerBox = bulkOptions[0];
+                        } else {
+                            hasDictError = true;  // 0个或多个，阻断
+                            finalSheetsPerBox = "";
+                        }
+                    } else {
+                        // 标准箱：从字典取 ≤100 的包装片数
+                        const boxOptions = (truthData.sheetsOptions || []).filter(s => s <= 100);
+                        if (boxOptions.length === 1) {
+                            finalSheetsPerBox = boxOptions[0];
+                        } else {
+                            hasDictError = true;  // 0个或多个，阻断
+                            finalSheetsPerBox = "";
                         }
                     }
                 } else {
@@ -916,13 +934,13 @@ function processTextToPallets(text) {
                 }
 
                 let p_boxes = q.isBulk ? 1 : q.val;
-                let p_pcsPerBox = q.isBulk ? q.val : finalSheetsPerBox;
-                let p_pcs = (p_boxes && p_pcsPerBox) ? (p_boxes * p_pcsPerBox) : 0; 
+                let p_pcsPerBox = finalSheetsPerBox;
+                let p_pcs = (p_boxes && p_pcsPerBox) ? (p_boxes * p_pcsPerBox) : 0;
 
                 currentPallet.push({
                     w: wVal, h: hVal, thickness: finalGauge, type: currentType,
                     boxes: p_boxes, pcsPerBox: p_pcsPerBox, pcs: p_pcs,
-                    isCustomPack: (activeExplicitGauge !== null || (truthData && truthData.sheets) || q.isBulk)
+                    isCustomPack: (activeExplicitGauge !== null || (truthData && truthData.sheetsOptions) || q.isBulk)
                 });
 
                 activeSizeUsed = true; 
