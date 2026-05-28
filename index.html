@@ -386,6 +386,25 @@
         </div>
       </div>
     </div>
+    <div class="card" style="max-width: 900px; margin: 0 auto;">
+      <div class="card-header"><i class="ph ph-currency-cny" style="margin-right: 6px;"></i> 人民币大写转换器 (中文财务大写)</div>
+      <div class="card-body">
+        <div class="field-row" style="margin-bottom: 24px;">
+          <div><label>输入人民币金额（元）</label><input type="number" id="rmbAmount" step="0.01" placeholder="例如: 12345.67" class="font-mono" oninput="convertRMB()" style="font-size: 16px; font-weight: 600; color: var(--manual-input);"></div>
+          <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+            <label>快捷说明</label>
+            <div style="font-size:12px; color:var(--text-muted); line-height:1.8; padding: 10px 16px; background: var(--input-bg); border-radius: var(--radius-elem);">
+              支持到「分」· 自动处理连续零 · 符合财务票据规范
+            </div>
+          </div>
+        </div>
+        <div class="tool-result-box" style="position:relative; min-height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 40px 30px;">
+          <div style="font-size:12px; font-weight:500; color:var(--text-muted); margin-bottom:16px;">实时大写结果（财务规范格式）</div>
+          <div id="rmbResult" style="font-size:22px; font-weight:800; color:var(--text); line-height:1.6; word-break:break-word; font-family: 'Noto Sans SC', sans-serif; letter-spacing: 2px;">- 等待输入 -</div>
+          <button onclick="copyRMBResult()" style="margin-top: 24px; padding: 12px 24px; border-radius: 50px; background: var(--input-bg); border: 1px solid transparent; font-weight: 500; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 8px; transition: 0.2s;"><i class="ph ph-copy" style="font-size: 16px;"></i> 一键复制结果</button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <main id="pageDocs" class="app-page">
@@ -1352,7 +1371,103 @@ function copyAmountResult() {
     if (text === "- 等待输入 -" || !text) return showToast("没有可以复制的内容", "warning"); 
     navigator.clipboard.writeText(text).then(() => showToast("复制成功！", "success")).catch(err => showToast("复制失败", "error")); 
 }
+// ==========================================
+// 🀄 人民币大写转换
+// ==========================================
 
+function convertRMB() {
+  const input = document.getElementById('rmbAmount').value.trim();
+  const resultEl = document.getElementById('rmbResult');
+
+  if (input === '' || isNaN(input)) {
+    resultEl.innerText = '- 等待输入 -';
+    return;
+  }
+
+  const num = parseFloat(input);
+
+  if (num < 0) {
+    resultEl.innerText = '⚠️ 请输入正数金额';
+    return;
+  }
+
+  if (num >= 1000000000000) {
+    resultEl.innerText = '⚠️ 金额超出范围（最大千亿）';
+    return;
+  }
+
+  const DIGITS   = ['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];
+  const INT_UNIT = ['','拾','佰','仟','万','拾','佰','仟','亿','拾','佰','仟'];
+  const DEC_UNIT = ['角','分'];
+
+  // 将金额固定到两位小数，拆分整数与小数
+  const fixed   = num.toFixed(2);
+  const [intStr, decStr] = fixed.split('.');
+  const intNum  = parseInt(intStr, 10);
+  const jiao    = parseInt(decStr[0], 10);
+  const fen     = parseInt(decStr[1], 10);
+
+  // ── 整数部分转换 ──
+  function intToZH(n) {
+    if (n === 0) return '零';
+
+    let result = '';
+    const s = String(n);
+    const len = s.length;
+
+    for (let i = 0; i < len; i++) {
+      const d    = parseInt(s[i], 10);
+      const pos  = len - 1 - i;          // 从高位到低位的位权索引
+      const unit = INT_UNIT[pos];
+
+      if (d === 0) {
+        // 需要补零的条件：后面还有非零位，且结果末尾还没有零
+        const remaining = s.slice(i + 1);
+        const hasMore   = /[1-9]/.test(remaining);
+        if (hasMore && !result.endsWith('零')) {
+          result += '零';
+        }
+      } else {
+        result += DIGITS[d] + unit;
+      }
+    }
+
+    // 处理"壹拾"开头简写为"拾"（财务大写保留壹拾，不做简化）
+    return result;
+  }
+
+  // ── 拼装最终结果 ──
+  let output = '';
+
+  if (intNum === 0) {
+    output = '零元';
+  } else {
+    output = intToZH(intNum) + '元';
+  }
+
+  if (jiao === 0 && fen === 0) {
+    output += '整';
+  } else if (jiao === 0) {
+    // 有分无角：需补零
+    output += '零' + DIGITS[fen] + '分';
+  } else {
+    output += DIGITS[jiao] + '角';
+    if (fen !== 0) {
+      output += DIGITS[fen] + '分';
+    }
+    // fen === 0 时角后不加"整"（银行票据规范）
+  }
+
+  resultEl.innerText = output;
+}
+
+function copyRMBResult() {
+  const text = document.getElementById('rmbResult').innerText;
+  if (text === '- 等待输入 -' || !text) return showToast('没有可以复制的内容', 'warning');
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('复制成功！', 'success'))
+    .catch(() => showToast('复制失败', 'error'));
+}
 // ==========================================
 // 🖨️ PDF 导出与打印核心
 // ==========================================
