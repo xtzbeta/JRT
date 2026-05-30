@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Logistics OS V2.0</title>
+<title>Logistics OS V3.0</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -38,6 +38,7 @@
     --input-bg: rgba(255, 255, 255, 0.04); --mark-preview-bg: #121212;
     --glass-border: 1px solid rgba(255, 255, 255, 0.12);
     --glass-shadow: 0 8px 32px rgba(255, 255, 255, 0.06), 0 0 15px rgba(255, 255, 255, 0.03), inset 0 0 1px rgba(255, 255, 255, 0.2);
+    --step1-color: #60a5fa; --step2-color: #3b82f6; --step3-color: #2563eb; --step4-color: #1d4ed8; --step5-color: #1e3a8a;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -86,28 +87,68 @@
   .marks-layout { display: grid; grid-template-columns: 700px 1fr; gap: 32px;
   align-items: start; }
 
-  header { background: var(--panel-bg); backdrop-filter: saturate(180%) blur(20px); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between;
-  position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
-  .header-left { display: flex; align-items: center; gap: 16px; }
-  header h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.5px; transition: all 0.3s ease; display: flex; align-items: center;
-  gap: 8px;}
-  .header-controls { display: flex; align-items: center; gap: 12px; }
+  /* ==========================================
+     V3.0 全新 Header 重构
+     ========================================== */
+  header { 
+      height: 60px; 
+      background: #ffffff; 
+      box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.03); 
+      padding: 0 32px; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+      position: sticky; top: 0; z-index: 100; 
+  }
+  [data-theme="dark"] header { 
+      background: #1c1c1e; 
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06); 
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; flex: 1; }
+  .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   
-  .global-stats { padding: 8px 20px;
-  background: var(--input-bg); border-radius: 20px; font-size: 13px; font-weight: 800; font-family: 'JetBrains Mono'; color: var(--text); display: flex; align-items: center; gap: 16px;
-  opacity: 0; transform: translateY(-5px); transition: all 0.3s ease; pointer-events: none; border: 1px solid var(--border); }
-  .global-stats.active { opacity: 1; transform: translateY(0); }
+  /* 数据胶囊组件 */
+  .global-stats { 
+      height: 36px; padding: 0 14px; 
+      background: var(--input-bg); border-radius: 10px; 
+      display: flex; align-items: center; gap: 12px; 
+      opacity: 0; transition: opacity 0.3s ease; pointer-events: none; 
+  }
+  .global-stats.active { opacity: 1; }
   .global-stats-item { display: flex; align-items: center; gap: 6px; }
-  .global-stats-item span.lbl { color: var(--text-muted);
-  font-size: 11px; font-weight: 500; }
+  .global-stats-item span.lbl { color: var(--text-muted); font-size: 10px; font-weight: 600;}
+  .global-stats-item span.val { color: var(--text); font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono'; }
   .stat-divider { width: 1px; height: 14px; background: var(--border); }
+
+  /* 降级图标按钮 (清空/深色模式) */
+  .header-icon-btn { 
+      width: 34px; height: 34px; 
+      display: flex; align-items: center; justify-content: center; 
+      background: transparent; border: none; border-radius: 8px; 
+      color: var(--text); font-size: 18px; transition: 0.2s; 
+  }
+  .header-icon-btn:hover { background: var(--input-bg); }
+  .btn-clear:hover { color: var(--danger); background: var(--danger-light); }
+
+  /* 核心操作按钮 */
+  .header-action-btn { 
+      height: 34px; padding: 0 16px; border-radius: 8px; font-size: 12px; 
+      display: flex; align-items: center; gap: 6px; transition: 0.2s; cursor: pointer; 
+  }
+  .btn-pdf { background: transparent; border: 1px solid var(--border); color: var(--text); font-weight: 500;}
+  .btn-pdf:hover { background: var(--input-bg); border-color: var(--border-hover); }
+  .btn-excel { background: var(--text); color: var(--bg); border: 1px solid var(--text); font-weight: 600; }
+  .btn-excel:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
   
-  .header-btn { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 20px;
-  font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.2s ease; }
-  .header-btn:hover { border-color: var(--border-hover); background: var(--input-bg); }
-  .btn-print-top { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 600; }
-  .btn-print-top:hover { opacity: 0.9;
-  transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .sync-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 11px;
+  font-weight: 600; transition: all 0.3s ease; border: 1px solid transparent;}
+  .sync-badge.synced { background: rgba(52,199,89,0.08); color: var(--success); }
+  .sync-badge.synced .sync-dot { background: var(--success); }
+  .sync-badge:not(.synced) { background: rgba(255,149,0,0.08); color: var(--warning); }
+  .sync-badge:not(.synced) .sync-dot { background: var(--warning); animation: pulse-warning 1s infinite; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; }
+  @keyframes pulse-warning { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+  /* ========================================== */
 
   .preview-panel { position: sticky; top: 85px; height: calc(100vh - 105px);
   display: flex; flex-direction: column; border: var(--glass-border); border-radius: var(--radius-outer); background: var(--panel-bg); overflow: hidden;
@@ -145,8 +186,6 @@
   
   .input-warning { border-color: var(--danger) !important;
   box-shadow: 0 0 0 3px var(--danger-light) !important; background: rgba(255,59,48,0.02) !important; }
-  .custom-pack-input { color: var(--success) !important; font-weight: 700 !important;
-  background: rgba(5,150,105,0.05) !important; border-color: rgba(5,150,105,0.2) !important; }
 
   .pallet-list { display: flex; flex-direction: column; gap: 24px; }
   .pallet-item { border: none; border-radius: var(--radius-inner); background: transparent; transition: all 0.3s; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03);
@@ -164,13 +203,27 @@
   opacity: 0; padding: 0 20px; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease; }
   .pallet-item.open .pallet-body { max-height: 5000px; opacity: 1; padding: 24px 20px; }
 
-  .product-row-single { padding: 10px 0;
-  border-bottom: 1px solid rgba(0,0,0,0.03); margin-bottom: 10px; display: grid; grid-template-columns: 200px 1fr 70px 70px 80px 40px; gap: 10px;
-  align-items: center;}
+  .product-row-single { 
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border); margin-bottom: 10px; 
+    display: grid; 
+    grid-template-columns: minmax(160px, 2.5fr) 1fr 1fr 1fr 1.2fr 40px; 
+    gap: 10px;
+    align-items: center;
+  }
   .product-row-single:last-child { border-bottom: none; margin-bottom: 0;}
-  .product-row-single input { min-height: 40px; padding: 8px; font-weight: 600;
-  text-align: center; border: 1px solid transparent; border-radius: 6px; background: rgba(0,0,0,0.03); color: var(--manual-input); transition: 0.2s;}
-  .product-row-single input:focus { border-color: var(--accent); background: transparent; }
+  
+  .product-row-single input { 
+    min-height: 40px; padding: 8px; font-weight: 600;
+    text-align: center; border: 1px solid transparent; 
+    border-bottom: 1px solid var(--border); 
+    border-radius: 6px 6px 0 0; 
+    background: rgba(128,128,128,0.03); color: var(--manual-input); transition: 0.2s;
+  }
+  .product-row-single input:focus { 
+    border-color: transparent; border-bottom-color: var(--accent); 
+    background: var(--input-bg); box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
   .product-row-single .sep { font-size: 12px; color: var(--text-muted); font-weight: 500; padding: 0 4px; }
   .total-pcs-cell { font-family: 'JetBrains Mono'; font-size: 15px; font-weight: 800; color: var(--text); border-radius: 6px; text-align: center; }
 
@@ -207,15 +260,6 @@
   .drop-zone { width: 100%; padding: 24px; background: var(--input-bg); border: 1px dashed var(--border); border-radius: var(--radius-inner);
   transition: all 0.2s ease; display: flex; flex-direction: column; text-align: left; }
   .drop-zone:hover, .drop-zone.dragover { background: rgba(128,128,128,0.06); border-color: var(--text-muted); }
-  
-  .sync-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 11px;
-  font-weight: 600; transition: all 0.3s ease; border: 1px solid transparent;}
-  .sync-badge.synced { background: rgba(52,199,89,0.08); color: var(--success); }
-  .sync-badge.synced .sync-dot { background: var(--success); }
-  .sync-badge:not(.synced) { background: rgba(255,149,0,0.08); color: var(--warning); }
-  .sync-badge:not(.synced) .sync-dot { background: var(--warning); animation: pulse-warning 1s infinite; }
-  .sync-dot { width: 6px; height: 6px; border-radius: 50%; }
-  @keyframes pulse-warning { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
   .preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; background: transparent;
   padding: 16px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
@@ -233,10 +277,24 @@
   transition: 0.2s;}
   .page-nav-btn:hover { background: var(--input-bg); border-color: var(--border-hover); }
 
-  .tool-container { display: grid; grid-template-columns: 1fr; gap: 24px; }
-  @media (min-width: 900px) { .tool-container { grid-template-columns: 1fr 1fr; } }
-  .tool-result-box { background: var(--input-bg); border-radius: var(--radius-inner);
-  padding: 24px; border: var(--glass-border); box-shadow: var(--glass-shadow); min-height: 300px; }
+  .finance-card {
+      background: var(--panel-bg); backdrop-filter: blur(24px); border: var(--glass-border);
+      border-radius: var(--radius-outer); box-shadow: var(--glass-shadow); padding: 40px; margin-bottom: 24px; max-width: 1200px; margin: 0 auto;
+  }
+  .finance-grid { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 40px; }
+  @media (max-width: 900px) { .finance-grid { grid-template-columns: 1fr; gap: 40px; } .finance-divider { display: none; } }
+  .finance-divider { background: var(--border); width: 1px; height: 100%; }
+  .finance-col { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .finance-header { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 24px; letter-spacing: 0.5px; }
+  .immersive-input { font-size: 32px; font-weight: 800; border: none; background: transparent; text-align: center; color: var(--text); padding: 0; margin-bottom: 30px; height: auto; outline: none; transition: 0.3s; width: 100%; letter-spacing: -1px; }
+  .immersive-input::placeholder { color: var(--border-hover); }
+  .immersive-input:focus { box-shadow: none; transform: scale(1.02); }
+  .clean-select { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--input-bg); color: var(--text); margin-bottom: 20px; outline: none; cursor: pointer; }
+  .clean-select-placeholder { font-size: 12px; font-weight: 500; color: var(--text-muted); padding: 6px 12px; background: rgba(128,128,128,0.03); border-radius: 20px; margin-bottom: 20px; }
+  .copyable-result { font-size: 20px; font-weight: 800; color: var(--manual-input); background: rgba(0,82,204,0.05); padding: 24px 30px; border-radius: 12px; width: 100%; word-break: break-word; cursor: pointer; transition: 0.2s; border: 1px dashed transparent; min-height: 100px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 8px;}
+  .copyable-result:hover { border-color: rgba(0,82,204,0.3); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,82,204,0.08); }
+  .copy-hint { font-size: 11px; color: var(--text-muted); opacity: 0; transition: 0.2s; font-weight: 600; }
+  .copyable-result:hover .copy-hint { opacity: 1; }
   
   .docs-container { max-width: 900px; margin: 0 auto;
   background: var(--panel-bg); padding: 40px 60px; border-radius: var(--radius-outer); border: var(--glass-border); box-shadow: var(--glass-shadow); line-height: 1.8; }
@@ -255,8 +313,11 @@
     transition: transform 0.2s ease; background: transparent;}
   }
 
-  .mark-card { background: white; width: 210mm; height: 148.5mm; display: flex;
-  align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; margin: 0; padding: 0; overflow: hidden; color: black; position: relative; }
+  .mark-card { 
+    background: white; width: 210mm; height: 148.5mm; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0; box-sizing: border-box; margin: 0; padding: 0; overflow: hidden; color: black; position: relative; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.05); 
+  }
   .mark-inner { width: 200mm; height: 140mm; border: none; box-sizing: border-box; overflow: hidden; background: #fff; display: flex; flex-direction: column;
   font-family: Arial, sans-serif; }
   
@@ -264,7 +325,7 @@
     @page { size: A4 portrait; margin: 0 !important; }
     body, [data-theme="dark"] { background: white !important; color: black !important; margin: 0 !important;
     -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    header, .left-panel, .preview-header, .view-ctrl, .app-sidebar, .toast-container, .btn-back-to-top, .app-footer { display: none !important; }
+    header, .left-panel, .preview-header, .app-sidebar, .toast-container, .btn-back-to-top, .app-footer { display: none !important; }
     .container { display: block; padding: 0; max-width: 100%; margin: 0; }
     .main-wrapper { margin-left: 0 !important; }
     .app-page#pageMarks { display: block !important; padding: 0 !important; }
@@ -303,42 +364,44 @@
 <aside class="app-sidebar collapsed" id="appSidebar">
   <div class="sidebar-header">
     <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="ph ph-list"></i></button>
-    <span class="sidebar-title">LOGISTICS OS</span>
+    <span class="sidebar-title">LOGISTICS OS V3.0</span>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-group-title">Main</div>
-    <div class="nav-item active" onclick="switchPage('pageMarks', this, '<i class=\'ph ph-package\'></i> 唛头生成工作台')">
+    <div class="nav-item active" onclick="switchPage('pageMarks', this, '唛头生成工作台')">
       <i class="ph ph-package nav-icon"></i><span class="nav-text">唛头生成工作台</span>
     </div>
     <div class="nav-group-title">Document Tools</div>
-    <div class="nav-item" onclick="switchPage('pageAmount', this, '<i class=\'ph ph-text-aa\'></i> 英文金额大写转换')">
-      <i class="ph ph-text-aa nav-icon"></i><span class="nav-text">金额大写转换</span>
+    <div class="nav-item" onclick="switchPage('pageAmount', this, '金额大写转化')">
+      <i class="ph ph-text-aa nav-icon"></i><span class="nav-text">金额大写转化</span>
     </div>
-    <div class="nav-item" onclick="switchPage('pageDocs', this, '<i class=\'ph ph-book-open\'></i> 操作指南')">
+    <div class="nav-item" onclick="switchPage('pageDocs', this, '操作指南')">
       <i class="ph ph-book-open nav-icon"></i><span class="nav-text">操作指南</span>
     </div>
   </nav>
 </aside>
 
 <div class="main-wrapper">
+  
   <header>
     <div class="header-left">
-      <h1 id="pageTitle"><i class="ph ph-package"></i> OS V1.1</h1>
+      <span id="pageTitle" style="display: none;"></span>
+      
       <div id="globalStats" class="global-stats">
-        <div class="global-stats-item"><span class="lbl">BOXES</span> <span id="g-boxes">0</span></div><div class="stat-divider"></div>
-        <div class="global-stats-item"><span class="lbl">PCS</span> <span id="g-pcs">0</span></div><div class="stat-divider"></div>
-        <div class="global-stats-item"><span class="lbl">SQM</span> <span id="g-sqm">0.00</span></div>
+        <div class="global-stats-item"><span class="lbl">BOXES</span><span id="g-boxes" class="val">0</span></div>
+        <div class="stat-divider"></div>
+        <div class="global-stats-item"><span class="lbl">PCS</span><span id="g-pcs" class="val">0</span></div>
+        <div class="stat-divider"></div>
+        <div class="global-stats-item"><span class="lbl">SQM</span><span id="g-sqm" class="val">0.00</span></div>
       </div>
     </div>
    
-    <div class="header-controls">
-      <button class="header-btn" onclick="clearAllData()" style="color: var(--danger); border-color: var(--danger-light); background: rgba(220,38,38,0.03);"><i class="ph ph-trash"></i> 清空</button>
-      
-      <button class="header-btn" onclick="toggleThicknessNorm()" id="thickNormBtn" title="开启后自动将下公差规整为标准代号"><i class="ph-fill ph-check-square" style="color: var(--success);"></i> 智能厚度: 开</button>
-      
-      <button class="header-btn theme-toggle" onclick="toggleTheme()" id="themeBtn"><i class="ph ph-moon"></i> 深色模式</button>
-      <button class="header-btn" onclick="exportToPDF()"><i class="ph ph-download-simple"></i> 导出 PDF</button>
-      <button class="header-btn btn-print-top" id="btnPrintTop" onclick="validateAndPrint()"><i class="ph ph-printer"></i> 批量打印</button>
+    <div class="header-right">
+      <span class="sync-badge" id="saveStatus" style="margin-right: 8px;"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
+      <button class="header-icon-btn btn-clear" onclick="clearAllData()" title="清空"><i class="ph ph-trash"></i></button>
+      <button class="header-icon-btn theme-toggle" onclick="toggleTheme()" id="themeBtn" title="深色模式"><i class="ph ph-moon"></i></button>
+      <button class="header-action-btn btn-pdf" onclick="exportToPDF()"><i class="ph ph-file-pdf"></i> 导出 PDF</button>
+      <button class="header-action-btn btn-excel" id="btnExportTop" onclick="exportToExcel()"><i class="ph ph-file-xls"></i> 导出箱单</button>
     </div>
   </header>
 
@@ -350,10 +413,23 @@
 
         <div class="card card-step1">
           <div class="card-header" style="justify-content: space-between; cursor: pointer;" onclick="toggleMappingPanel()">
-            <span><i class="ph ph-translate" style="margin-right: 6px; vertical-align: middle;"></i> 步骤 1：英文品名 PRODUCT DESCRIPTION</span>
-            <span style="font-size:10px; color:var(--step2-color); font-weight: 500;" id="mappingToggleText">点击展开设置 ▼</span>
+            <span><i class="ph ph-translate" style="margin-right: 6px; vertical-align: middle;"></i> 步骤 1：字典与规则配置 DICTIONARY & RULES</span>
+            <i class="ph ph-caret-down" id="mappingToggleIcon" style="font-size: 16px; color: var(--text-muted); transition: transform 0.3s; transform: rotate(-90deg);"></i>
           </div>
           <div class="card-body" id="mappingBody" style="display: none;">
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding: 14px 18px; background: rgba(128,128,128,0.03); border: 1px solid var(--border); border-radius: var(--radius-elem);">
+               <div>
+                   <div style="font-size: 13px; font-weight: 600; color: var(--text); display:flex; align-items:center; gap:6px;">
+                       <i class="ph-fill ph-magic-wand" style="color:var(--success);"></i> 智能厚度规整
+                   </div>
+                   <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+                       开启后，系统在解析流程单或手动录入时，会自动将非标准的下公差厚度（如 0.27、0.28）强制规整为标准代号（0.30）。
+                   </div>
+               </div>
+               <button id="thickNormBtn" onclick="toggleThicknessNorm()" style="background:var(--success); color:#fff; border:none; padding:8px 18px; border-radius:20px; font-size:12px; font-weight:600; transition:0.2s; flex-shrink: 0; margin-left: 16px;">已开启</button>
+            </div>
+
             <div class="stat-note" style="margin-top:0; margin-bottom:16px; border-top:none; padding-top:0;">将流程单中的胶型转化为需要显示在唛头上的对应英文品名（修改后自动保存）</div>
             <div id="mappingList"></div>
             <button class="btn-add-product" onclick="addMapping()"><i class="ph ph-plus"></i> 增加品名映射规则</button>
@@ -364,9 +440,11 @@
           <div class="card-header"><i class="ph ph-file-xls" style="margin-right: 6px; vertical-align: middle;"></i> 步骤 2：数据导入 DATA IMPORT</div>
           <div class="card-body">
             <div id="dropZone" class="drop-zone">
-              <textarea id="pasteInput" rows="3" class="font-mono" style="resize: vertical; margin-bottom: 12px; width: 100%;" placeholder="LCL: 上传流程单 [Excel] + 上传打托明细 [Excel]&#10;FCL: 上传流程单 [Excel] + 粘贴打托明细 [Txt]"></textarea>
-              <div style="display:flex; justify-content: flex-end; align-items: center;">
-                <button class="btn-icon" onclick="document.getElementById('importFile').click()" style="padding: 8px 16px; font-size:12px; border: 1px solid var(--border); border-radius: 8px; font-weight: 500;"><i class="ph ph-upload-simple" style="margin-right: 6px;"></i> 上传 Excel</button>
+              <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"><i class="ph ph-text-align-left"></i> 粘贴打托明细 (LCL / FCL)</label>
+              <textarea id="pasteInput" rows="3" class="font-mono" style="resize: vertical; margin-bottom: 16px; width: 100%; border: 1px solid var(--border); background: var(--bg);" placeholder="上传流程单->上传LCL打托明细/在此处粘贴文本格式的FCL打托明细..."></textarea>
+              <div style="display:flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 16px;">
+                <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);"><i class="ph ph-file-xls"></i> 支持直接拖拽 Excel 文件至此处</span>
+                <button class="btn-icon" onclick="document.getElementById('importFile').click()" style="padding: 8px 16px; font-size:12px; border: 1px solid var(--border); border-radius: 8px; font-weight: 500; background: var(--panel-bg);"><i class="ph ph-upload-simple" style="margin-right: 6px;"></i> 上传 Excel</button>
               </div>
               <input type="file" id="importFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleFileUpload(event)">
             </div>
@@ -376,7 +454,7 @@
         <div class="card card-step3">
           <div class="card-header" style="justify-content: space-between; cursor: pointer;" onclick="toggleBasicInfoPanel()">
             <span><i class="ph ph-identification-card" style="margin-right: 6px; vertical-align: middle;"></i> 步骤 3：基础信息 BASIC INFO.</span>
-            <span style="font-size:10px; color:var(--step2-color); font-weight: 500;" id="basicInfoToggleText">点击收起 ▲</span>
+            <i class="ph ph-caret-down" id="basicInfoToggleIcon" style="font-size: 16px; color: var(--text-muted); transition: transform 0.3s; transform: rotate(0deg);"></i>
           </div>
           <div class="card-body" id="basicInfoBody" style="display: block;">
             <div class="field-row">
@@ -402,15 +480,16 @@
             <div id="reconAlert" style="display:none; flex-direction:column; align-items:flex-start; border-radius:12px; padding:16px 20px; margin-top:24px; font-size:12px; font-weight:500; gap:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div id="reconContent" style="display:flex; align-items:center; gap:8px;"></div>
-                    <button onclick="clearTargetData()" style="background:none; border:none; color:inherit; font-size:11px; opacity:0.7; cursor:pointer; text-decoration:underline;">清除目标</button>
+                    <button onclick="clearTargetData()" style="background:none; border:none; color:inherit; font-size:11px; opacity:0.7; cursor:pointer; text-decoration:underline;">清除流程单</button>
                 </div>
             </div>
           </div>
         </div>
 
         <div class="card card-step5">
-          <div class="card-header" style="justify-content: space-between;">
+          <div class="card-header" style="justify-content: space-between; align-items: center;">
             <span><i class="ph ph-stack" style="margin-right: 6px; vertical-align: middle;"></i> 步骤 5：装箱清单 PALLETS DETAILS</span>
+            <button class="header-action-btn" onclick="optimizePalletOrder()" style="background: transparent; border: 1px solid var(--border-hover); font-size: 11px; height: 28px;"><i class="ph ph-magic-wand" style="color: var(--manual-input);"></i> 智能优化顺序</button>
           </div>
           <div class="card-body" style="padding: 0 0 24px 0;">
             <div id="palletList" class="pallet-list" style="padding: 0 24px;"></div>
@@ -423,10 +502,6 @@
       </div>
 
       <div class="preview-panel">
-        <div class="view-ctrl" style="justify-content: flex-end;">
-           <span class="sync-badge" id="saveStatus"><span class="sync-dot"></span><span id="saveStatusText">等待同步</span></span>
-        </div>
-
         <div class="preview-header">
           <div class="preview-title">
             <i class="ph ph-eye"></i> 打印预览
@@ -454,36 +529,30 @@
   </main>
 
   <main id="pageAmount" class="app-page">
-    <div class="card" style="max-width: 900px; margin: 0 auto;">
-      <div class="card-header"><i class="ph ph-text-aa" style="margin-right: 6px;"></i> 英文发票金额大写转换器 (SAY...ONLY)</div>
-      <div class="card-body">
-        <div class="field-row" style="margin-bottom: 24px;">
-          <div><label>选择报关币种</label><select id="currType" onchange="convertAmount()" style="font-size: 14px; font-weight: 500;"><option value="USD">US DOLLARS</option><option value="EUR">EURO</option><option value="GBP">POUNDS STERLING</option><option value="CNY">CHINESE YUAN</option><option value="HKD">HONG KONG DOLLARS</option><option value="JPY">JAPANESE YEN</option></select></div>
-          <div><label>输入数字金额</label><input type="number" id="numAmount" step="0.01" placeholder="例如: 8888.88" class="font-mono" oninput="convertAmount()" style="font-size: 16px; font-weight: 600; color: var(--manual-input);"></div>
+    <div class="finance-card">
+      <div class="finance-grid">
+        <div class="finance-col">
+           <div class="finance-header">US DOLLARS / EUROS (SAY...ONLY)</div>
+           <select id="currType" class="clean-select" onchange="convertAmount()">
+               <option value="USD">US DOLLARS</option><option value="EUR">EUROS</option>
+               <option value="GBP">POUNDS STERLING</option><option value="CNY">CHINESE YUAN</option>
+               <option value="HKD">HONG KONG DOLLARS</option><option value="JPY">JAPANESE YEN</option>
+           </select>
+           <input type="number" id="numAmount" step="0.01" class="immersive-input font-mono" placeholder="0.00" oninput="convertAmount()">
+           <div id="amountResult" class="copyable-result font-mono" onclick="copyResult('amountResult')">
+               <span>- 等待输入 -</span>
+           </div>
         </div>
-        <div class="tool-result-box" style="position:relative; min-height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 40px 30px;">
-          <div style="font-size:12px; font-weight:500; color:var(--text-muted); margin-bottom:16px;">实时大写结果 (默认 CENTS 格式)</div>
-          <div id="amountResult" class="font-mono" style="font-size:20px; font-weight:800; color:var(--text); line-height:1.6; word-break:break-word;">- 等待输入 -</div>
-          <button onclick="copyAmountResult()" style="margin-top: 24px; padding: 12px 24px; border-radius: 50px; background: var(--input-bg); border: 1px solid transparent; font-weight: 500; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 8px; transition: 0.2s;"><i class="ph ph-copy" style="font-size: 16px;"></i> 一键复制结果</button>
-        </div>
-      </div>
-    </div>
-    <div class="card" style="max-width: 900px; margin: 0 auto;">
-      <div class="card-header"><i class="ph ph-currency-cny" style="margin-right: 6px;"></i> 人民币大写转换器 (中文财务大写)</div>
-      <div class="card-body">
-        <div class="field-row" style="margin-bottom: 24px;">
-          <div><label>输入人民币金额（元）</label><input type="number" id="rmbAmount" step="0.01" placeholder="例如: 12345.67" class="font-mono" oninput="convertRMB()" style="font-size: 16px; font-weight: 600; color: var(--manual-input);"></div>
-          <div style="display:flex; flex-direction:column; justify-content:flex-end;">
-            <label>快捷说明</label>
-            <div style="font-size:12px; color:var(--text-muted); line-height:1.8; padding: 10px 16px; background: var(--input-bg); border-radius: var(--radius-elem);">
-              支持到「分」· 自动处理连续零 · 符合财务票据规范
-            </div>
-          </div>
-        </div>
-        <div class="tool-result-box" style="position:relative; min-height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding: 40px 30px;">
-          <div style="font-size:12px; font-weight:500; color:var(--text-muted); margin-bottom:16px;">实时大写结果（财务规范格式）</div>
-          <div id="rmbResult" style="font-size:22px; font-weight:800; color:var(--text); line-height:1.6; word-break:break-word; font-family: 'Noto Sans SC', sans-serif; letter-spacing: 2px;">- 等待输入 -</div>
-          <button onclick="copyRMBResult()" style="margin-top: 24px; padding: 12px 24px; border-radius: 50px; background: var(--input-bg); border: 1px solid transparent; font-weight: 500; font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 8px; transition: 0.2s;"><i class="ph ph-copy" style="font-size: 16px;"></i> 一键复制结果</button>
+        
+        <div class="finance-divider"></div>
+        
+        <div class="finance-col">
+           <div class="finance-header">CHINESE YUAN (财务大写)</div>
+           <div class="clean-select-placeholder">支持精确到分角连续零</div>
+           <input type="number" id="rmbAmount" step="0.01" class="immersive-input font-mono" placeholder="0.00" oninput="convertRMB()">
+           <div id="rmbResult" class="copyable-result" style="font-family: 'Noto Sans SC', sans-serif; letter-spacing: 2px;" onclick="copyResult('rmbResult')">
+               <span>- 等待输入 -</span>
+           </div>
         </div>
       </div>
     </div>
@@ -491,19 +560,18 @@
 
   <main id="pageDocs" class="app-page">
     <div class="docs-container">
-        <h2>🌟 系统概述</h2>
-        <p>Logistics OS V2.0 是一款唛头自动化排版与数据核对工具。</p>
-        <h2>🛠️ 新增特性：支持大垛包装</h2>
+        <h2>🌟 Logistics OS V3.0 新特性</h2>
         <ul>
-            <li><strong>字典：</strong>导入流程单后，系统不仅抓取总数，还会自动构建尺寸与厚度的映射树。</li>
-            <li><strong>防呆：</strong>当输入打托数据存在多种厚度歧义时，系统会强制将其标红，要求手动补全，否则将禁止打印。</li>
-            <li><strong>FCL：</strong>支持包含 "+" 号的复杂混拼格式，无视排版直接抓取货物。</li>
+            <li><strong>精准托盘捕获：</strong> 解析引擎现已支持直接剥离无盒数规格作为独立木托尺寸。</li>
+            <li><strong>终极装箱单导出：</strong> 在导出 Excel 时自动合并多规格托盘单元格，分离长宽厚度，直接出单。</li>
+            <li><strong>智能优化顺序：</strong> 托盘内混拼智能选代表，依据型号 -> 规格 -> 厚度一键梳理物理装箱乱序。</li>
+            <li><strong>财务工具重制：</strong> 无表单化沉浸式数字排版，一键悬浮复制。</li>
         </ul>
     </div>
   </main>
 
   <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">
-    Created by Mark | OS V2.0 26/05/2026
+    Created by Mark | OS V3.0 01/06/2026
   </div>
 </div>
 
@@ -518,7 +586,6 @@ let targetData = null; let truthDictionary = {};
 let allCardsHTML = []; let currentPageIndex = 0; 
 const ORIGINAL_TITLE = document.title;
 
-// 新增全局状态：智能厚度规整开关
 let isThicknessNormEnabled = true;
 
 let saveTimeout;
@@ -550,9 +617,6 @@ function clearAllData() {
     }
 }
 
-// ==========================================
-// 智能厚度开关逻辑
-// ==========================================
 function loadThickNormPref() {
     const saved = localStorage.getItem('ctp_thick_norm_v2');
     if (saved !== null) {
@@ -565,11 +629,13 @@ function updateThickNormBtn() {
     const btn = document.getElementById('thickNormBtn');
     if(btn) {
         if(isThicknessNormEnabled) {
-            btn.innerHTML = '<i class="ph-fill ph-check-square" style="color: var(--success);"></i> 智能厚度: 开';
-            btn.style.borderColor = 'var(--border)';
+            btn.innerText = '已开启';
+            btn.style.background = 'var(--success)';
+            btn.style.color = '#fff';
         } else {
-            btn.innerHTML = '<i class="ph ph-square"></i> 智能厚度: 关';
-            btn.style.borderColor = 'transparent';
+            btn.innerText = '已关闭';
+            btn.style.background = 'var(--text-muted)';
+            btn.style.color = '#fff';
         }
     }
 }
@@ -578,7 +644,7 @@ function toggleThicknessNorm() {
     isThicknessNormEnabled = !isThicknessNormEnabled;
     localStorage.setItem('ctp_thick_norm_v2', isThicknessNormEnabled);
     updateThickNormBtn();
-    showToast(isThicknessNormEnabled ? "已开启：下公差厚度将自动规整 (如0.27→0.30)" : "已关闭：将如实显示输入的实际厚度", "success");
+    showToast(isThicknessNormEnabled ? "已开启：下公差厚度将自动规整" : "已关闭：将如实显示输入的实际厚度", "success");
 }
 
 function toggleSidebar() { document.getElementById('appSidebar').classList.toggle('collapsed'); document.body.classList.toggle('sidebar-collapsed'); }
@@ -586,11 +652,13 @@ function switchPage(pageId, element, titleText) {
   document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   document.getElementById(pageId).classList.add('active'); element.classList.add('active');
-  document.getElementById('pageTitle').innerHTML = titleText;
+  // 保持逻辑不报错
+  const titleEl = document.getElementById('pageTitle');
+  if(titleEl) titleEl.innerHTML = titleText;
   
   const isMarksPage = (pageId === 'pageMarks');
   document.getElementById('globalStats').style.display = isMarksPage ? 'flex' : 'none';
-  document.getElementById('btnPrintTop').style.display = isMarksPage ? 'flex' : 'none';
+  document.getElementById('btnExportTop').style.display = isMarksPage ? 'flex' : 'none';
   
   if (isMarksPage) generateMarks();
 }
@@ -600,6 +668,7 @@ document.addEventListener('keydown', function(e) {
   if (!document.getElementById('pageMarks').classList.contains('active')) return;
   if (e.key === 'ArrowLeft') { prevPage(); e.preventDefault(); } else if (e.key === 'ArrowRight') { nextPage(); e.preventDefault(); }
 });
+
 function showToast(message, type = 'success') {
   const container = document.getElementById('toastContainer'); const toast = document.createElement('div');
   toast.className = `toast ${type}`;
@@ -615,10 +684,15 @@ function toggleTheme() {
   const html = document.documentElement;
   const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', newTheme); localStorage.setItem('ctp_theme_v2', newTheme);
-  document.getElementById('themeBtn').innerHTML = newTheme === 'dark' ? '<i class="ph ph-sun"></i> 浅色模式' : '<i class="ph ph-moon"></i> 深色模式';
+  // 只留图标，去除文字
+  document.getElementById('themeBtn').innerHTML = newTheme === 'dark' ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>';
 }
-function loadTheme() { if(localStorage.getItem('ctp_theme_v2') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark');
-  document.getElementById('themeBtn').innerHTML = '<i class="ph ph-sun"></i> 浅色模式'; } }
+function loadTheme() { 
+  if(localStorage.getItem('ctp_theme_v2') === 'dark') { 
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.getElementById('themeBtn').innerHTML = '<i class="ph ph-sun"></i>'; 
+  } 
+}
 
 const zoomSlider = document.getElementById('zoomSlider');
 zoomSlider.addEventListener('input', (e) => { document.getElementById('marksGrid').style.transform = `scale(${e.target.value})`; });
@@ -647,15 +721,11 @@ dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.clas
 dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
 dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) handleFileUpload({ target: { files: e.dataTransfer.files } }); });
 
-// ==========================================
-// 核心算法：厚度处理拦截
-// ==========================================
 function normalizeThickness(t) { 
     if(t === "" || t === null || t === undefined) return "";
     const val = parseFloat(t); 
     if (isNaN(val)) return ""; 
 
-    // 如果未开启智能规整，直接返回用户输入的原始数值
     if (!isThicknessNormEnabled) return val;
     
     if (val >= 0.255 && val <= 0.30) return 0.30;
@@ -688,10 +758,20 @@ function handleFileUpload(event) {
   if (event.target && event.target.value) event.target.value = '';
 }
 window.addEventListener('scroll', () => { const btn = document.getElementById('backToTop'); if (window.scrollY > 300) btn.classList.add('show'); else btn.classList.remove('show'); });
-function toggleBasicInfoPanel() { const body = document.getElementById('basicInfoBody'); const text = document.getElementById('basicInfoToggleText'); if (body.style.display === 'none') { body.style.display = 'block';
-  text.innerText = '点击收起 ▲'; } else { body.style.display = 'none'; text.innerText = '点击展开设置 ▼'; } }
-function toggleMappingPanel() { const body = document.getElementById('mappingBody'); const text = document.getElementById('mappingToggleText'); if (body.style.display === 'none') { body.style.display = 'block';
-  text.innerText = '点击收起 ▲'; } else { body.style.display = 'none'; text.innerText = '点击展开设置 ▼'; } }
+
+function toggleBasicInfoPanel() { 
+    const body = document.getElementById('basicInfoBody'); 
+    const icon = document.getElementById('basicInfoToggleIcon'); 
+    if (body.style.display === 'none') { body.style.display = 'block'; icon.style.transform = 'rotate(0deg)'; } 
+    else { body.style.display = 'none'; icon.style.transform = 'rotate(-90deg)'; } 
+}
+
+function toggleMappingPanel() { 
+    const body = document.getElementById('mappingBody'); 
+    const icon = document.getElementById('mappingToggleIcon'); 
+    if (body.style.display === 'none') { body.style.display = 'block'; icon.style.transform = 'rotate(0deg)'; } 
+    else { body.style.display = 'none'; icon.style.transform = 'rotate(-90deg)'; } 
+}
 
 let dynamicTypeMapping = [];
 const defaultTypeMapping = [{ code: '300-3', name: 'CTCP' }, { code: '300-SL', name: 'CTCP-DL' }, { code: '300-S', name: 'CTCP' }, { code: '200-SG', name: 'CTP' }, { code: '200-S', name: 'CTP' }, { code: 'JRT-M', name: 'DOP' }];
@@ -731,7 +811,8 @@ function init() {
   const pasteInput = document.getElementById('pasteInput'); if (pasteInput) { pasteInput.addEventListener('paste', () => { setTimeout(() => { parsePastedText(); }, 50); }); }
   setTimeout(autoScalePreview, 100);
 }
-function initSample() { pallets = []; palletCount = 0; addPallet(); }
+
+function initSample() { pallets = []; palletCount = 0; addPallet(true); setSyncStatus(false); }
 
 function loadData() {
   const raw = localStorage.getItem('ctp_logistics_data_v2');
@@ -749,7 +830,8 @@ function loadData() {
   } catch(e) {} }
   return false;
 }
-function clearTargetData() { targetData = null; truthDictionary = {}; triggerSave(); generateMarks(); showToast("已清除对账目标"); }
+
+function clearTargetData() { targetData = null; truthDictionary = {}; triggerSave(); generateMarks(); showToast("已清除流程单数据"); }
 
 // ========================================================
 // 流程单解析 & 真理字典构建
@@ -783,11 +865,8 @@ function parseWorkOrder(data) {
             let cellStr = String(data[r][colW] || "").replace(/\s/g, '').toLowerCase();
             let parts = cellStr.split(/[*x×]/);
             if (parts.length >= 2 && parseFloat(parts[0]) > 100 && parseFloat(parts[1]) > 100) {
-                isCombinedSize = true;
-                colH = colW; 
-                break;
+                isCombinedSize = true; colH = colW; break;
             }
-            
             let wVal = Math.abs(parseFloat(cellStr.replace(/[()（）]/g, '')));
             if (!isNaN(wVal) && wVal > 100) {
                 if (parseFloat(data[r][colW+2]) > 100) colH = colW+2;
@@ -830,10 +909,7 @@ function parseWorkOrder(data) {
             if (isCombinedSize) {
                 let sizeStr = String(row[colW] || "").replace(/\s/g, '').toLowerCase();
                 let parts = sizeStr.split(/[*x×]/);
-                if (parts.length >= 2) {
-                    wVal = Math.abs(parseFloat(parts[0]));
-                    hVal = Math.abs(parseFloat(parts[1]));
-                }
+                if (parts.length >= 2) { wVal = Math.abs(parseFloat(parts[0])); hVal = Math.abs(parseFloat(parts[1])); }
                 if (parts.length >= 3) {
                     let tRaw = parseFloat(parts[2]);
                     if (!isNaN(tRaw) && tRaw > 0 && tRaw < 1.0) tNorm = normalizeThickness(tRaw);
@@ -851,13 +927,7 @@ function parseWorkOrder(data) {
             }
             
             if (colType !== -1 && row[colType]) {
-                let rawType = String(row[colType])
-                    .replace(/[\u4e00-\u9fa5]/g, '')     
-                    .replace(/[^\x20-\x7E]/g, '')        
-                    .trim()                            
-                    .replace(/[\s\(\)\[\]\{\}]+/g, '-')  
-                    .replace(/-+$/, '')                  
-                    .toUpperCase();
+                let rawType = String(row[colType]).replace(/[\u4e00-\u9fa5]/g, '').replace(/[^\x20-\x7E]/g, '').trim().replace(/[\s\(\)\[\]\{\}]+/g, '-').replace(/-+$/, '').toUpperCase();
                 currentType = mappingDict[rawType] || rawType; 
                 currentTypeSheetsDefault = 50;
             }
@@ -865,9 +935,9 @@ function parseWorkOrder(data) {
             if (!isNaN(wVal) && wVal > 100 && !isNaN(hVal) && hVal > 100) {
                 let tStr = tNorm.toFixed(2);
                 if (colPcsPerBox !== -1) {
-                let boxStr = String(row[colPcsPerBox] || "");
-                let boxMatch = boxStr.match(/\d+/);
-                if (boxMatch) currentTypeSheetsDefault = parseInt(boxMatch[0]);
+                    let boxStr = String(row[colPcsPerBox] || "");
+                    let boxMatch = boxStr.match(/\d+/);
+                    if (boxMatch) currentTypeSheetsDefault = parseInt(boxMatch[0]);
                 }
                 let sheets = currentTypeSheetsDefault;
                 
@@ -903,17 +973,17 @@ function parseWorkOrder(data) {
     showToast(`📝 流程单解析成功！构建字典 ${Object.keys(truthDictionary).length} 组`, "success");
 }
 
+// [V3.0] 核心解析引擎 Bug 修复
 function processTextToPallets(text) {
     const { mappingDict } = buildMappingDictionaries();
     text = text.replace(/[*X×]/gi, 'x');
-    text = text.replace(
-        /([A-Za-z]+[A-Za-z0-9\-]*)(\d{3,4}x)/g,
-        '$1 $2'
-    );
+    text = text.replace(/([A-Za-z]+[A-Za-z0-9\-]*)(\d{3,4}x)/g, '$1 $2');
     text = text.replace(/\+/g, ' + ');
     text = text.replace(/\[PALLET\]/gi, ' [PALLET] ');
+    
     const ignoreList = ['B0', 'B1', 'B2', 'B2C3', 'B3', 'B3C5', 'B4'];
     let rawTokens = text.replace(/\n/g, ' ').split(/\s+/).filter(t => t && !ignoreList.includes(t.toUpperCase()));
+    
     const isSizeWithGauge = (t) => /^\d{3,4}x\d{3,4}x\d+(\.\d+)?$/.test(t);
     const isSizeNormal = (t) => /^\d{3,4}x\d{3,4}$/.test(t);
     const isQty = (t) => /^\d{1,4}$/.test(t);
@@ -921,28 +991,36 @@ function processTextToPallets(text) {
     const isPlus = (t) => t === '+';
     const isPalletBreak = (t) => t === '[PALLET]';
     const isType = (t) => /^[A-Za-z0-9\-]+$/.test(t) && !isSizeNormal(t) && !isSizeWithGauge(t) && !isQty(t) && !isBulkMultiplier(t);
+    
     let stream = rawTokens.filter(t => isSizeNormal(t) || isSizeWithGauge(t) || isQty(t) || isBulkMultiplier(t) || isType(t) || isPlus(t) || isPalletBreak(t));
-    let finalPallets = []; let pendingPallets = []; let currentPallet = [];
+    
+    let finalPallets = []; 
+    let currentPallet = { products: [], palletL: "", palletW: "" };
+    
     let currentType = getDefaults().productType; 
     let hasDictError = false;
 
     let activeSize = null;
     let activeExplicitGauge = null;
     let activeSizeUsed = false;
+    
+    const commitCurrentPallet = () => {
+        if (currentPallet.products.length > 0) {
+            finalPallets.push(currentPallet);
+            currentPallet = { products: [], palletL: "", palletW: "" };
+        }
+    };
+
     for (let i = 0; i < stream.length; i++) {
         let token = stream[i];
+        
         if (isPlus(token)) {
-            if (currentPallet.length > 0) { 
-                pendingPallets.push(currentPallet);
-                currentPallet = []; 
-            }
+            commitCurrentPallet();
             continue;
         }
         
         if (isPalletBreak(token)) {
-            finalPallets.push(...pendingPallets);
-            if (currentPallet.length > 0) finalPallets.push(currentPallet);
-            pendingPallets = []; currentPallet = [];
+            commitCurrentPallet();
             continue;
         }
 
@@ -959,14 +1037,20 @@ function processTextToPallets(text) {
                 activeSize = token;
                 activeExplicitGauge = isSizeWithGauge(token) ? parseFloat(token.split('x')[2]) : null;
                 activeSizeUsed = false; 
-                continue;
             } else {
-                finalPallets.push(...pendingPallets);
-                if (currentPallet.length > 0) finalPallets.push(currentPallet);
-                pendingPallets = []; currentPallet = [];
+                // ==========================================
+                // [V3.0 核心修复：托盘物理切断逻辑]
+                // ==========================================
+                let dims = token.split('x').map(n => parseFloat(n)).filter(n => !isNaN(n)).sort((a,b) => b-a);
+                if (dims.length >= 2) {
+                    currentPallet.palletL = dims[0];
+                    currentPallet.palletW = dims[1];
+                    // 拿到木托尺寸，强制打包提交！修复了断托丢失 Bug
+                    commitCurrentPallet();
+                }
                 activeSize = null; 
-                continue;
             }
+            continue;
         }
 
         if (isQty(token) || isBulkMultiplier(token)) {
@@ -985,61 +1069,37 @@ function processTextToPallets(text) {
 
             for (let q of qtyList) {
                 if (activeSizeUsed) {
-                    if (currentPallet.length > 0) { 
-                        finalPallets.push(currentPallet); 
-                        currentPallet = []; 
-                    }
+                    commitCurrentPallet();
                 }
 
                 let wVal = parseFloat(activeSize.split('x')[0]);
                 let hVal = parseFloat(activeSize.split('x')[1]);
-                
                 let truthKey = `${activeSize.split('x').slice(0,2).join('x')}x${currentType}`; 
                 let truthData = truthDictionary[truthKey];
                 
-                let finalGauge = ""; 
-                let finalSheetsPerBox = "";
+                let finalGauge = ""; let finalSheetsPerBox = "";
                 if (truthData) {
                     if (activeExplicitGauge !== null) {
                         let normExplicit = normalizeThickness(activeExplicitGauge);
-                        if (truthData.gauges.includes(normExplicit)) {
-                            finalGauge = normExplicit;
-                        } else {
-                            hasDictError = true;
-                        }
+                        if (truthData.gauges.includes(normExplicit)) finalGauge = normExplicit; else hasDictError = true;
                     } else {
-                        if (truthData.gauges.length === 1) {
-                            finalGauge = truthData.gauges[0];
-                        } else {
-                            hasDictError = true;
-                        }
+                        if (truthData.gauges.length === 1) finalGauge = truthData.gauges[0]; else hasDictError = true;
                     }
 
                     if (q.isBulk) {
                         const bulkOptions = (truthData.sheetsOptions || []).filter(s => s > 100);
-                        if (bulkOptions.length === 1) {
-                            finalSheetsPerBox = bulkOptions[0];
-                        } else {
-                            hasDictError = true;
-                            finalSheetsPerBox = "";
-                        }
+                        if (bulkOptions.length === 1) finalSheetsPerBox = bulkOptions[0]; else { hasDictError = true; finalSheetsPerBox = ""; }
                     } else {
                         const boxOptions = (truthData.sheetsOptions || []).filter(s => s <= 100);
-                        if (boxOptions.length === 1) {
-                            finalSheetsPerBox = boxOptions[0];
-                        } else {
-                            hasDictError = true;
-                            finalSheetsPerBox = "";
-                        }
+                        if (boxOptions.length === 1) finalSheetsPerBox = boxOptions[0]; else { hasDictError = true; finalSheetsPerBox = ""; }
                     }
-                } else {
-                    hasDictError = true;
-                }
+                } else { hasDictError = true; }
 
                 let p_boxes = q.isBulk ? 1 : q.val;
                 let p_pcsPerBox = finalSheetsPerBox;
                 let p_pcs = (p_boxes && p_pcsPerBox) ? (p_boxes * p_pcsPerBox) : 0;
-                currentPallet.push({
+                
+                currentPallet.products.push({
                     w: wVal, h: hVal, thickness: finalGauge, type: currentType,
                     boxes: p_boxes, pcsPerBox: p_pcsPerBox, pcs: p_pcs,
                     isCustomPack: (activeExplicitGauge !== null || (truthData && truthData.sheetsOptions) || q.isBulk)
@@ -1049,15 +1109,21 @@ function processTextToPallets(text) {
         }
     }
 
-    if (currentPallet.length > 0) pendingPallets.push(currentPallet);
-    if (pendingPallets.length > 0) finalPallets.push(...pendingPallets);
+    commitCurrentPallet();
 
     if (hasDictError) showToast("🛑 阻断：部分产品字典未匹配或存在厚度歧义！请在下方红框中手动补全。", "error");
     else if (finalPallets.length > 0) showToast(`📦 解析成功！共 ${finalPallets.length} 托。`, "success");
+    
     let parsedPallets = [];
-    finalPallets.forEach((palletProducts, idx) => {
-        let needsFix = palletProducts.some(p => p.thickness === "" || p.pcsPerBox === "");
-        parsedPallets.push({ id: idx + 1, isOpen: needsFix, products: palletProducts });
+    finalPallets.forEach((palletGroup, idx) => {
+        let needsFix = palletGroup.products.some(p => p.thickness === "" || p.pcsPerBox === "");
+        parsedPallets.push({ 
+            id: idx + 1, 
+            isOpen: needsFix, 
+            products: palletGroup.products, 
+            palletL: palletGroup.palletL, 
+            palletW: palletGroup.palletW 
+        });
     });
     return parsedPallets;
 }
@@ -1089,22 +1155,16 @@ function parseExcelData(arrayBuffer) {
         if (!data[r]) continue;
         let rowTokens = [];
         for (let c = 0; c < data[r].length; c++) {
-            let val = String(data[r][c] || "")
-                .replace(/\r/g, '')          
-                .replace(/[\u00A0]+/g, ' ') 
-                .trim();
+            let val = String(data[r][c] || "").replace(/\r/g, '').replace(/[\u00A0]+/g, ' ').trim();
             if (val) rowTokens.push(val);
         }
-        if (rowTokens.length > 0) {
-            fullText += rowTokens.join("\n") + "\n[PALLET]\n";
-        }
+        if (rowTokens.length > 0) { fullText += rowTokens.join("\n") + "\n[PALLET]\n"; }
     }
         
     let newPallets = processTextToPallets(fullText);
     if (newPallets.length === 0) return showToast("未能识别到打托数据", 'error');
     if (pallets.length > 0) { 
-        if (confirm(`是否覆盖现有数据？`)) { pallets = newPallets;
-            palletCount = newPallets.length; } 
+        if (confirm(`是否覆盖现有数据？`)) { pallets = newPallets; palletCount = newPallets.length; } 
         else { newPallets.forEach(np => { palletCount++; np.id = palletCount; pallets.push(np); }); } 
     } else { pallets = newPallets; palletCount = newPallets.length; }
 
@@ -1120,23 +1180,16 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
   let tdFontSize = '15pt', tdPadding = '2.5mm 1mm', thFontSize = '4.5mm', markPadding = '6mm 8mm', logoSize = '12mm';
   let poFontSize = '4.5mm', madeInFontSize = '6.5mm', destFontSize = '8mm', palletNumSize = '18mm', headerGap = '6mm';
   if (rLen >= 12) {
-      tdFontSize = '9pt'; tdPadding = '0.5mm 1mm'; thFontSize = '3mm';
-      markPadding = '3mm 5mm'; 
+      tdFontSize = '9pt'; tdPadding = '0.5mm 1mm'; thFontSize = '3mm'; markPadding = '3mm 5mm'; 
       logoSize = '7mm'; poFontSize = '3.5mm'; madeInFontSize = '5mm'; destFontSize = '6mm'; palletNumSize = '12mm'; headerGap = '2mm';
   } else if (rLen >= 9) {
-      tdFontSize = '10pt';
-      tdPadding = '1mm 1mm'; thFontSize = '3.5mm'; markPadding = '4mm 6mm'; 
-      logoSize = '8mm'; poFontSize = '3.5mm'; madeInFontSize = '5.5mm';
-      destFontSize = '6.5mm'; palletNumSize = '14mm'; headerGap = '3mm';
+      tdFontSize = '10pt'; tdPadding = '1mm 1mm'; thFontSize = '3.5mm'; markPadding = '4mm 6mm'; 
+      logoSize = '8mm'; poFontSize = '3.5mm'; madeInFontSize = '5.5mm'; destFontSize = '6.5mm'; palletNumSize = '14mm'; headerGap = '3mm';
   } else if (rLen >= 6) {
-      tdFontSize = '12pt';
-      tdPadding = '1.5mm 1mm'; thFontSize = '4mm'; markPadding = '4mm 8mm'; 
-      logoSize = '10mm'; poFontSize = '4mm'; madeInFontSize = '6mm';
-      destFontSize = '7mm'; palletNumSize = '16mm'; headerGap = '4mm';
+      tdFontSize = '12pt'; tdPadding = '1.5mm 1mm'; thFontSize = '4mm'; markPadding = '4mm 8mm'; 
+      logoSize = '10mm'; poFontSize = '4mm'; madeInFontSize = '6mm'; destFontSize = '7mm'; palletNumSize = '16mm'; headerGap = '4mm';
   } else if (rLen >= 4) {
-      tdFontSize = '13pt';
-      tdPadding = '2mm 1mm'; thFontSize = '4.2mm'; markPadding = '5mm 8mm';
-      logoSize = '11mm'; headerGap = '5mm';
+      tdFontSize = '13pt'; tdPadding = '2mm 1mm'; thFontSize = '4.2mm'; markPadding = '5mm 8mm'; logoSize = '11mm'; headerGap = '5mm';
   }
 
   let thSt = `font-family: Arial, sans-serif; font-size:${thFontSize}; font-weight: 900; padding: ${tdPadding}; text-align: left; border-bottom: 1.5px solid #000;`;
@@ -1228,9 +1281,7 @@ function renderPage() {
     const pageInput = document.getElementById('pageInput'); 
     const totalPagesSpan = document.getElementById('totalPages'); 
     
-    if (allCardsHTML.length === 0) { 
-        grid.innerHTML = ''; pageInput.value = 0; totalPagesSpan.innerText = '0'; return; 
-    } 
+    if (allCardsHTML.length === 0) { grid.innerHTML = ''; pageInput.value = 0; totalPagesSpan.innerText = '0'; return; } 
     
     if (currentPageIndex >= allCardsHTML.length) currentPageIndex = allCardsHTML.length - 1; 
     if (currentPageIndex < 0) currentPageIndex = 0; 
@@ -1242,21 +1293,14 @@ function renderPage() {
 
 function prevPage() { if(currentPageIndex > 0) { currentPageIndex--; renderPage(); } }
 function nextPage() { if(currentPageIndex < allCardsHTML.length - 1) { currentPageIndex++; renderPage(); } }
-
-function jumpToPage(val) {
-    let p = parseInt(val) - 1; if(isNaN(p)) p = 0;
-    if(p < 0) p = 0;
-    if(p >= allCardsHTML.length) p = allCardsHTML.length - 1;
-    currentPageIndex = p; renderPage();
-}
+function jumpToPage(val) { let p = parseInt(val) - 1; if(isNaN(p)) p = 0; if(p < 0) p = 0; if(p >= allCardsHTML.length) p = allCardsHTML.length - 1; currentPageIndex = p; renderPage(); }
 
 function generateMarks() {
   allCardsHTML = []; 
   const customer = document.getElementById('customer').value.toUpperCase() || ''; const poNo = document.getElementById('poNo').value.toUpperCase() || '';
   const workOrderNo = document.getElementById('workOrderNo').value.toUpperCase() || ''; const destination = document.getElementById('destination').value.toUpperCase() || '';
   const total = pallets.length;
-  let globalBoxes = 0;
-  let globalPcs = 0; let globalSqm = 0;
+  let globalBoxes = 0; let globalPcs = 0; let globalSqm = 0;
 
   pallets.forEach((pallet, idx) => {
     const validProducts = pallet.products.filter(p => parseFloat(p.w) > 0 && parseFloat(p.h) > 0 && parseFloat(p.boxes) > 0);
@@ -1265,11 +1309,8 @@ function generateMarks() {
     
     validProducts.forEach(p => { globalBoxes += parseFloat(p.boxes) || 0; globalPcs += parseFloat(p.pcs) || 0; globalSqm += ((parseFloat(p.w) || 0) / 1000) * ((parseFloat(p.h) || 0) / 1000) * (parseFloat(p.pcs) || 0); });
 
-    if (validProducts.length === 0) {
-       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, [], 0, 0)}</div>`});
-    } else {
-       allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, validProducts, totalPcs, totalBoxes)}</div>`});
-    }
+    if (validProducts.length === 0) { allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, [], 0, 0)}</div>`}); } 
+    else { allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, validProducts, totalPcs, totalBoxes)}</div>`}); }
   });
   currentTotalPcs = globalPcs; currentTotalSqm = globalSqm;
   const gBoxesEl = document.getElementById('g-boxes'); const gPcsEl = document.getElementById('g-pcs');
@@ -1282,7 +1323,7 @@ function generateMarks() {
   
   const globalStatsEl = document.getElementById('globalStats');
   const isMarksPage = document.getElementById('pageMarks').classList.contains('active');
-  if ((globalBoxes > 0 || globalPcs > 0) && isMarksPage) { globalStatsEl.style.display = 'flex'; setTimeout(() => globalStatsEl.classList.add('active'), 50); } else { globalStatsEl.classList.remove('active'); }
+  if ((globalBoxes > 0 || globalPcs > 0) && isMarksPage) { globalStatsEl.classList.add('active'); } else { globalStatsEl.classList.remove('active'); }
 
   updateReconciliation(); renderPage(); 
 }
@@ -1292,31 +1333,52 @@ function updateReconciliation() {
    const reconContent = document.getElementById('reconContent');
    const statPcsEl = document.getElementById('statPcs');
    const statSqmEl = document.getElementById('statSqm');
+   
    if(!targetData || (!targetData.pcs && !targetData.sqm)) {
-       reconAlert.style.display = 'none'; statPcsEl.style.color = 'var(--text)';
-       statSqmEl.style.color = 'var(--text)'; return;
+       reconAlert.style.display = 'none'; statPcsEl.style.color = 'var(--text)'; statSqmEl.style.color = 'var(--text)'; return;
+   }
+
+   let hasIncomplete = false;
+   for (let i = 0; i < pallets.length; i++) {
+       for (let j = 0; j < pallets[i].products.length; j++) {
+           let pr = pallets[i].products[j];
+           if (!pr.w || !pr.h || pr.thickness === "" || !pr.type || !pr.boxes || pr.pcsPerBox === "") { hasIncomplete = true; break; }
+       }
+       if (hasIncomplete) break;
+   }
+
+   if (hasIncomplete) {
+       reconAlert.style.display = 'flex'; reconAlert.style.background = 'rgba(255,149,0,0.08)'; reconAlert.style.border = '1px solid rgba(255,149,0,0.2)'; reconAlert.style.color = 'var(--warning)';
+       reconContent.innerHTML = `<i class="ph-fill ph-warning-circle" style="font-size:18px"></i> <span>对账挂起：装箱清单存在缺失（如厚度、片数为空），请先补全标红字段！</span>`;
+       statPcsEl.style.color = 'var(--warning)'; statSqmEl.style.color = 'var(--warning)';
+       return; 
    }
    
-   let pcsDiff = currentTotalPcs - (targetData.pcs || 0);
-   let sqmDiff = currentTotalSqm - (targetData.sqm || 0);
-   let pcsMatch = !targetData.pcs || pcsDiff === 0;
-   let sqmMatch = !targetData.sqm || Math.abs(sqmDiff) <= 0.1;
+   let pcsDiff = currentTotalPcs - (targetData.pcs || 0); let sqmDiff = currentTotalSqm - (targetData.sqm || 0);
+   let pcsMatch = !targetData.pcs || pcsDiff === 0; let sqmMatch = !targetData.sqm || Math.abs(sqmDiff) <= 0.1;
 
    reconAlert.style.display = 'flex';
+   
    if(pcsMatch && sqmMatch) {
-       reconAlert.style.background = 'rgba(52,199,89,0.08)'; reconAlert.style.border = '1px solid rgba(52,199,89,0.15)';
-       reconAlert.style.color = 'var(--success)';
+       reconAlert.style.background = 'rgba(52,199,89,0.08)'; reconAlert.style.border = '1px solid rgba(52,199,89,0.15)'; reconAlert.style.color = 'var(--success)';
        reconContent.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:18px"></i> <span>业财对账通过：打托实绩与流程单完美一致！</span>`;
        statPcsEl.style.color = 'var(--success)'; statSqmEl.style.color = 'var(--success)';
    } else {
        reconAlert.style.background = 'var(--danger-light)'; reconAlert.style.border = '1px solid rgba(255,59,48,0.15)'; reconAlert.style.color = 'var(--danger)';
        let errStr = [];
-       if(!pcsMatch) errStr.push(`缺/溢 ${pcsDiff > 0 ? '+'+pcsDiff : pcsDiff} 张 (目标: ${(targetData.pcs||0).toLocaleString()})`);
-       if(!sqmMatch) errStr.push(`平米数差 ${sqmDiff > 0 ? '+'+sqmDiff.toFixed(2) : sqmDiff.toFixed(2)} (目标: ${(targetData.sqm||0).toFixed(2)})`);
-
+       if(!pcsMatch) errStr.push(`缺/溢 ${pcsDiff > 0 ? '+'+pcsDiff : pcsDiff} 张 (流程单: ${(targetData.pcs||0).toLocaleString()})`);
+       if(!sqmMatch) errStr.push(`平米数差 ${sqmDiff > 0 ? '+'+sqmDiff.toFixed(2) : sqmDiff.toFixed(2)} (流程单: ${(targetData.sqm||0).toFixed(2)})`);
        reconContent.innerHTML = `<i class="ph-fill ph-warning-circle" style="font-size:18px"></i> <span>异常：账实不符！${errStr.join(' | ')}</span>`;
        statPcsEl.style.color = pcsMatch ? 'var(--text)' : 'var(--danger)'; statSqmEl.style.color = sqmMatch ? 'var(--text-muted)' : 'var(--danger)';
    }
+}
+
+function updatePalletGlobal(id, field, value) {
+    const p = pallets.find(p => p.id === id);
+    if(p) {
+        p[field] = value;
+        triggerSave();
+    }
 }
 
 function renderPalletList() {
@@ -1327,8 +1389,17 @@ function renderPalletList() {
     let summary = pallet.products.map(p => { if(!p.w || !p.boxes) return ''; return `${p.w}x${p.h}x${(typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : (p.thickness || "???")} ${p.type} ${p.boxes}箱`; }).filter(s => s).join(' / ');
     if (summary) { summary += ` | 总张数: ${palletTotalPcs}`; }
     
+    let palletPropHTML = `
+      <div style="display:flex; align-items:center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px dashed var(--border);">
+          <span style="font-size:11px; font-weight:600; color:var(--text-muted); display:flex; align-items:center; gap:4px;"><i class="ph ph-bounding-box"></i> 木托尺寸</span>
+          <input class="font-mono" style="width:80px; height:28px; min-height:28px; padding:4px; text-align:center; background:rgba(0,0,0,0.02); border:1px solid transparent; border-bottom:1px solid var(--border); font-size:12px; font-weight:700; color: var(--text);" type="number" placeholder="L (长)" value="${pallet.palletL || ''}" oninput="updatePalletGlobal(${pallet.id}, 'palletL', this.value)">
+          <span style="color:var(--text-muted); font-size:12px;">×</span>
+          <input class="font-mono" style="width:80px; height:28px; min-height:28px; padding:4px; text-align:center; background:rgba(0,0,0,0.02); border:1px solid transparent; border-bottom:1px solid var(--border); font-size:12px; font-weight:700; color: var(--text);" type="number" placeholder="W (宽)" value="${pallet.palletW || ''}" oninput="updatePalletGlobal(${pallet.id}, 'palletW', this.value)">
+      </div>
+    `;
+
     let headerHTML = `
-      <div style="display: grid; grid-template-columns: 200px 1fr 70px 70px 80px 40px; gap: 10px; align-items: center; font-size: 10px; font-weight: 600; color: var(--text-muted); padding: 0 12px 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; letter-spacing: 0.5px;">
+      <div style="display: grid; grid-template-columns: minmax(160px, 2.5fr) 1fr 1fr 1fr 1.2fr 40px; gap: 10px; align-items: center; font-size: 10px; font-weight: 600; color: var(--text-muted); padding: 0 12px 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; letter-spacing: 0.5px;">
          <div style="text-align:center;">SIZE (W×H×T)</div>
          <div style="text-align:center;">TYPE</div>
          <div style="text-align:center;">BOXES</div>
@@ -1338,7 +1409,7 @@ function renderPalletList() {
       </div>
     `;
 
-    div.innerHTML = `<div class="pallet-header" onclick="togglePallet(${pallet.id})"><span style="display:flex;align-items:center; width:75%; overflow:hidden;"><span class="pallet-badge">${idx+1}/${pallets.length}</span><span class="pallet-summary">${summary || '待输入明细...'}</span></span><div class="pallet-actions"><button class="btn-remove-pallet" onclick="removePallet(${pallet.id},event)" title="删除托盘"><i class="ph ph-trash"></i></button></div></div><div class="pallet-body" id="pallet-body-${pallet.id}">${headerHTML}<div id="products-${pallet.id}">${pallet.products.map((p,pi) => renderProductRow(pallet.id, pi, p)).join('')}</div><button class="btn-add-product" onclick="addProduct(${pallet.id})"><i class="ph ph-plus"></i> 增加规格明细</button></div>`;
+    div.innerHTML = `<div class="pallet-header" onclick="togglePallet(${pallet.id})"><span style="display:flex;align-items:center; width:75%; overflow:hidden;"><span class="pallet-badge">${idx+1}/${pallets.length}</span><span class="pallet-summary">${summary || '待输入明细...'}</span></span><div class="pallet-actions"><button class="btn-remove-pallet" onclick="removePallet(${pallet.id},event)" title="删除托盘"><i class="ph ph-trash"></i></button></div></div><div class="pallet-body" id="pallet-body-${pallet.id}">${palletPropHTML}${headerHTML}<div id="products-${pallet.id}">${pallet.products.map((p,pi) => renderProductRow(pallet.id, pi, p)).join('')}</div><button class="btn-add-product" onclick="addProduct(${pallet.id})"><i class="ph ph-plus"></i> 增加规格明细</button></div>`;
     container.appendChild(div);
   });
 }
@@ -1350,12 +1421,8 @@ function renderProductRow(palletId, pi, p) {
   const bVal = (p.boxes !== undefined && p.boxes !== '') ? p.boxes : '';
   const pbVal = (p.pcsPerBox !== undefined && p.pcsPerBox !== '') ? p.pcsPerBox : '';
   const pcsVal = (p.pcs !== undefined && p.pcs !== '') ? p.pcs : 0;
-  let wErr = !p.w ? 'input-warning' : '';
-  let hErr = !p.h ? 'input-warning' : '';
-  let tErr = !p.thickness ? 'input-warning' : '';
-  let typeErr = !p.type ? 'input-warning' : '';
-  let bErr = !p.boxes ? 'input-warning' : '';
-  let pbErr = !p.pcsPerBox ? 'input-warning' : '';
+  let wErr = !p.w ? 'input-warning' : ''; let hErr = !p.h ? 'input-warning' : ''; let tErr = p.thickness === "" ? 'input-warning' : '';
+  let typeErr = !p.type ? 'input-warning' : ''; let bErr = !p.boxes ? 'input-warning' : ''; let pbErr = p.pcsPerBox === "" ? 'input-warning' : '';
   
   return `
     <div class="product-row-single" id="prod-${palletId}-${pi}">
@@ -1376,49 +1443,87 @@ function renderProductRow(palletId, pi, p) {
 }
 
 function togglePallet(id) { const p = pallets.find(p => p.id === id); if (p) { p.isOpen = !p.isOpen; renderPalletList(); triggerSave(); } }
-function addPallet() { let defaultT = getDefaults().thickness; pallets.push({ id: ++palletCount, isOpen: true, products: [{ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: '', pcs: 0, type: getDefaults().productType, isCustomPack: false }] });
-  renderPalletList(); generateMarks(); triggerSave(); }
+
+function addPallet(skipSave = false) { 
+    let defaultT = getDefaults().thickness; 
+    pallets.push({ 
+        id: ++palletCount, isOpen: true, palletL: "", palletW: "",
+        products: [{ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: '', pcs: 0, type: getDefaults().productType, isCustomPack: false }] 
+    });
+    renderPalletList(); generateMarks(); if (!skipSave) triggerSave();
+}
+
 function removePallet(id, e) { e.stopPropagation(); pallets = pallets.filter(p => p.id !== id); renderPalletList(); generateMarks(); triggerSave(); }
-function addProduct(id) { const p = pallets.find(p => p.id === id); if (p) { let defaultT = getDefaults().thickness;
-  p.products.push({ w:'', h:'', thickness: defaultT, boxes:'', pcsPerBox: '', pcs: 0, type: getDefaults().productType, isCustomPack: false }); renderPalletList(); generateMarks(); triggerSave(); } }
-function removeProduct(id, pi) { const p = pallets.find(p => p.id === id);
-  if (p && p.products.length > 1) { p.products.splice(pi, 1); renderPalletList(); generateMarks(); triggerSave(); } }
+function addProduct(id) { const p = pallets.find(p => p.id === id); if (p) { p.products.push({ w:'', h:'', thickness: getDefaults().thickness, boxes:'', pcsPerBox: '', pcs: 0, type: getDefaults().productType, isCustomPack: false }); renderPalletList(); generateMarks(); triggerSave(); } }
+function removeProduct(id, pi) { const p = pallets.find(p => p.id === id); if (p && p.products.length > 1) { p.products.splice(pi, 1); renderPalletList(); generateMarks(); triggerSave(); } }
 
 function updateProduct(palletId, pi, field, value) {
   const p = pallets.find(p => p.id === palletId);
   if (p && p.products[pi]) {
     const pr = p.products[pi];
-    if (field === 'type') { pr[field] = value.toUpperCase();
-    } else if (field === 'pcsPerBox') { pr.isCustomPack = true; pr[field] = parseInt(value) || 0;
-    } else { let num = parseFloat(value); pr[field] = isNaN(num) ? '' : num;
-    }
+    if (field === 'type') { pr[field] = value.toUpperCase(); } 
+    else if (field === 'pcsPerBox') { pr.isCustomPack = true; pr[field] = parseInt(value) || ''; } 
+    else { let num = parseFloat(value); pr[field] = isNaN(num) ? '' : num; }
     
-    if (field === 'thickness') { pr.thickness = normalizeThickness(pr.thickness);
-    }
-    
-    if (field !== 'pcsPerBox') { 
-        pr.pcsPerBox = getSmartPcsPerBox(pr.w, pr.h, pr.thickness, pr.isCustomPack, pr.pcsPerBox, pr.type);
-    }
+    if (field === 'thickness') pr.thickness = normalizeThickness(pr.thickness);
+    if (field !== 'pcsPerBox') pr.pcsPerBox = getSmartPcsPerBox(pr.w, pr.h, pr.thickness, pr.isCustomPack, pr.pcsPerBox, pr.type);
     pr.pcs = (parseFloat(pr.boxes) || 0) * (parseFloat(pr.pcsPerBox) || 0);
     
     const wrapper = document.getElementById(`prod-${palletId}-${pi}`);
     if(wrapper) {
         const inputs = wrapper.querySelectorAll('input');
-        if(field !== 'pcsPerBox' && !pr.isCustomPack) { 
-            inputs[5].value = pr.pcsPerBox;
-        } 
-        
+        if(field !== 'pcsPerBox' && !pr.isCustomPack) inputs[5].value = pr.pcsPerBox;
         if (field === 'w' && pr.w) inputs[0].classList.remove('input-warning');
         if (field === 'h' && pr.h) inputs[1].classList.remove('input-warning');
-        if (field === 'thickness' && pr.thickness) inputs[2].classList.remove('input-warning');
+        if (field === 'thickness' && pr.thickness !== "") inputs[2].classList.remove('input-warning');
         if (field === 'type' && pr.type) inputs[3].classList.remove('input-warning');
         if (field === 'boxes' && pr.boxes) inputs[4].classList.remove('input-warning');
-        if (field === 'pcsPerBox' && pr.pcsPerBox) inputs[5].classList.remove('input-warning');
-
+        if (field === 'pcsPerBox' && pr.pcsPerBox !== "") inputs[5].classList.remove('input-warning');
         wrapper.querySelector('.total-pcs-cell').innerText = pr.pcs.toLocaleString();
     }
     generateMarks(); triggerSave();
   }
+}
+
+function optimizePalletOrder() {
+    if (!pallets || pallets.length <= 1) return showToast("托盘数量不足，无需排序", "warning");
+
+    function getRep(pallet) {
+        if (!pallet.products || pallet.products.length === 0) return null;
+        return pallet.products.reduce((prev, current) => {
+            let pw = (parseFloat(prev.w)||0) * (parseFloat(prev.h)||0) * (parseFloat(prev.pcs)||0);
+            let cw = (parseFloat(current.w)||0) * (parseFloat(current.h)||0) * (parseFloat(current.pcs)||0);
+            return cw > pw ? current : prev;
+        });
+    }
+
+    function getWeight(type) {
+        let t = (type || "").toUpperCase();
+        if (t === 'CTP') return 1;
+        if (t === 'CTCP' || t === 'CTCP-DL') return 2;
+        if (t.includes('DOP')) return 3;
+        return 4; 
+    }
+
+    pallets.sort((a, b) => {
+        let rA = getRep(a); let rB = getRep(b);
+        if (!rA && !rB) return 0; if (!rA) return 1; if (!rB) return -1;
+        let wA = getWeight(rA.type); let wB = getWeight(rB.type);
+        if (wA !== wB) return wA - wB;
+        let widthA = parseFloat(rA.w)||0; let widthB = parseFloat(rB.w)||0;
+        if (widthA !== widthB) return widthB - widthA; 
+        let heightA = parseFloat(rA.h)||0; let heightB = parseFloat(rB.h)||0;
+        if (heightA !== heightB) return heightB - heightA;
+        let tA = parseFloat(rA.thickness)||0; let tB = parseFloat(rB.thickness)||0;
+        if (tA !== tB) return tA - tB;
+        return 0; 
+    });
+
+    pallets.forEach((p, idx) => { p.id = idx + 1; });
+    palletCount = pallets.length;
+
+    renderPalletList(); generateMarks(); triggerSave();
+    showToast("✨ 托盘顺序已按最优工业逻辑重新排列！", "success");
 }
 
 function convertAmount() {
@@ -1426,7 +1531,7 @@ function convertAmount() {
   const currCode = document.getElementById('currType').value; 
   const amt = parseFloat(amtInput);
   if(isNaN(amt)) { 
-      document.getElementById('amountResult').innerText = "- 等待输入 -"; 
+      document.getElementById('amountResult').innerHTML = "<span>- 等待输入 -</span>"; 
       return;
   }
   
@@ -1442,111 +1547,60 @@ function convertAmount() {
   }
 
   const parts = amt.toFixed(2).split('.'); 
-  const intP = parseInt(parts[0]); 
-  const decP = parts[1] ? parseInt(parts[1]) : 0;
+  const intP = parseInt(parts[0]); const decP = parts[1] ? parseInt(parts[1]) : 0;
   let intW = []; let num = intP; let scaleIdx = 0;
-  if (num === 0) { 
-      intW.push("ZERO");
-  } else { 
+  if (num === 0) intW.push("ZERO");
+  else { 
       while (num > 0) { 
           if (num % 1000 !== 0) intW.unshift(numToWords(num % 1000) + (scaleIdx > 0 ? " " + wordsScales[scaleIdx] : ""));
-          num = Math.floor(num / 1000); 
-          scaleIdx++; 
+          num = Math.floor(num / 1000); scaleIdx++; 
       } 
   }
   
   let finalStr = "SAY " + (currNames[currCode] || currCode) + " " + intW.join(" ").trim();
-  if (decP > 0) {
-      finalStr += " AND CENTS " + numToWords(decP);
-  }
+  if (decP > 0) finalStr += " AND CENTS " + numToWords(decP);
   finalStr += " ONLY";
   
-  document.getElementById('amountResult').innerText = finalStr.replace(/\s+/g, ' ');
-}
-
-function copyAmountResult() { 
-    const text = document.getElementById('amountResult').innerText;
-    if (text === "- 等待输入 -" || !text) return showToast("没有可以复制的内容", "warning"); 
-    navigator.clipboard.writeText(text).then(() => showToast("复制成功！", "success")).catch(err => showToast("复制失败", "error"));
+  document.getElementById('amountResult').innerHTML = `<span>${finalStr.replace(/\s+/g, ' ')}</span><div class="copy-hint">点击即可复制大写</div>`;
 }
 
 function convertRMB() {
   const input = document.getElementById('rmbAmount').value.trim();
   const resultEl = document.getElementById('rmbResult');
-  if (input === '' || isNaN(input)) {
-    resultEl.innerText = '- 等待输入 -';
-    return;
-  }
-
+  if (input === '' || isNaN(input)) { resultEl.innerHTML = '<span>- 等待输入 -</span>'; return; }
   const num = parseFloat(input);
-
-  if (num < 0) {
-    resultEl.innerText = '⚠️ 请输入正数金额';
-    return;
-  }
-
-  if (num >= 1000000000000) {
-    resultEl.innerText = '⚠️ 金额超出范围（最大千亿）';
-    return;
-  }
+  if (num < 0) { resultEl.innerHTML = '<span>⚠️ 请输入正数金额</span>'; return; }
+  if (num >= 1000000000000) { resultEl.innerHTML = '<span>⚠️ 金额超出范围（最大千亿）</span>'; return; }
 
   const DIGITS   = ['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'];
   const INT_UNIT = ['','拾','佰','仟','万','拾','佰','仟','亿','拾','佰','仟'];
-  const DEC_UNIT = ['角','分'];
-  const fixed   = num.toFixed(2);
-  const [intStr, decStr] = fixed.split('.');
-  const intNum  = parseInt(intStr, 10);
-  const jiao    = parseInt(decStr[0], 10);
-  const fen     = parseInt(decStr[1], 10);
+  const fixed   = num.toFixed(2); const [intStr, decStr] = fixed.split('.');
+  const intNum  = parseInt(intStr, 10); const jiao = parseInt(decStr[0], 10); const fen = parseInt(decStr[1], 10);
+  
   function intToZH(n) {
-    if (n === 0) return '零';
-    let result = '';
-    const s = String(n);
-    const len = s.length;
+    if (n === 0) return '零'; let result = ''; const s = String(n); const len = s.length;
     for (let i = 0; i < len; i++) {
-      const d    = parseInt(s[i], 10);
-      const pos  = len - 1 - i;          
-      const unit = INT_UNIT[pos];
-      if (d === 0) {
-        const remaining = s.slice(i + 1);
-        const hasMore   = /[1-9]/.test(remaining);
-        if (hasMore && !result.endsWith('零')) {
-          result += '零';
-        }
-      } else {
-        result += DIGITS[d] + unit;
-      }
+      const d = parseInt(s[i], 10); const pos = len - 1 - i; const unit = INT_UNIT[pos];
+      if (d === 0) { const remaining = s.slice(i + 1); const hasMore = /[1-9]/.test(remaining); if (hasMore && !result.endsWith('零')) result += '零'; } 
+      else { result += DIGITS[d] + unit; }
     }
     return result;
   }
 
-  let output = '';
-  if (intNum === 0) {
-    output = '零元';
-  } else {
-    output = intToZH(intNum) + '元';
-  }
+  let output = intNum === 0 ? '零元' : (intToZH(intNum) + '元');
+  if (jiao === 0 && fen === 0) output += '整';
+  else if (jiao === 0) output += '零' + DIGITS[fen] + '分';
+  else { output += DIGITS[jiao] + '角'; if (fen !== 0) output += DIGITS[fen] + '分'; }
 
-  if (jiao === 0 && fen === 0) {
-    output += '整';
-  } else if (jiao === 0) {
-    output += '零' + DIGITS[fen] + '分';
-  } else {
-    output += DIGITS[jiao] + '角';
-    if (fen !== 0) {
-      output += DIGITS[fen] + '分';
-    }
-  }
-
-  resultEl.innerText = output;
+  resultEl.innerHTML = `<span>${output}</span><div class="copy-hint">点击即可复制大写</div>`;
 }
 
-function copyRMBResult() {
-  const text = document.getElementById('rmbResult').innerText;
-  if (text === '- 等待输入 -' || !text) return showToast('没有可以复制的内容', 'warning');
-  navigator.clipboard.writeText(text)
-    .then(() => showToast('复制成功！', 'success'))
-    .catch(() => showToast('复制失败', 'error'));
+function copyResult(elId) {
+    const textSpan = document.querySelector(`#${elId} span`);
+    if(!textSpan) return;
+    const text = textSpan.innerText;
+    if (text === "- 等待输入 -" || text.includes('⚠️')) return showToast("没有可以复制的内容", "warning"); 
+    navigator.clipboard.writeText(text).then(() => showToast("已复制到剪贴板！", "success")).catch(() => showToast("复制失败", "error"));
 }
 
 function getPrintFileName() {
@@ -1554,29 +1608,83 @@ function getPrintFileName() {
     const dest = document.getElementById('destination').value.trim();
     const now = new Date();
     const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-    
     let parts = [];
     if(shipCode) parts.push(shipCode.replace(/[\/\\:*?"<>|]/g, '-'));
     if(dest) parts.push(dest.replace(/[\/\\:*?"<>|]/g, '-'));
     parts.push(dateStr);
-    
     return parts.join('-') || `ShippingMarks-${dateStr}`;
 }
 
-function validateAndPrint() {
+function exportToExcel() {
+    const destInput = document.getElementById('destination'); let isValid = true; let hasProducts = false;
+    document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
+    if (!destInput.value.trim()) { destInput.classList.add('input-warning'); showToast('⚠️ 目的地不能为空！', 'error'); destInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); isValid = false; }
+    pallets.forEach(p => { let palletHasError = false; p.products.forEach(pr => { hasProducts = true; if (!pr.w || !pr.h || pr.thickness === "" || !pr.type || !pr.boxes || pr.pcsPerBox === "") { isValid = false; palletHasError = true; } }); if (palletHasError) p.isOpen = true; });
+    if (!hasProducts && isValid) { showToast('⚠️ 没有可导出数据的明细！', 'error'); return; }
+    if (!isValid) { renderPalletList(); showToast('⚠️ 请补充带红框的必填数据！', 'error'); return; }
+
+    showToast('正在生成标准化装箱单...', 'success');
+    
+    let ws_data = [
+        ["Pallet No.", "Type", "Width (mm)", "Length (mm)", "Thickness", "Pcs/Box", "Boxes", "Total Pcs", "SQM", "Pallet L", "Pallet W"]
+    ];
+    let merges = [];
+    let currentRow = 1; 
+
+    pallets.forEach(p => {
+        let validProducts = p.products.filter(pr => parseFloat(pr.w) > 0 && parseFloat(pr.h) > 0 && parseFloat(pr.boxes) > 0);
+        if(validProducts.length === 0) return;
+        
+        let startRow = currentRow;
+        
+        validProducts.forEach(pr => {
+            let sqm = ((parseFloat(pr.w)||0)/1000) * ((parseFloat(pr.h)||0)/1000) * (parseFloat(pr.pcs)||0);
+            let tVal = (typeof pr.thickness === 'number' && !isNaN(pr.thickness)) ? pr.thickness.toFixed(2) : pr.thickness;
+            
+            ws_data.push([
+                p.id,                     
+                pr.type,                  
+                parseFloat(pr.w)||0,      
+                parseFloat(pr.h)||0,      
+                tVal,                     
+                pr.pcsPerBox,             
+                pr.boxes,                 
+                pr.pcs,                   
+                parseFloat(sqm.toFixed(2)), 
+                p.palletL || "",          
+                p.palletW || ""           
+            ]);
+            currentRow++;
+        });
+
+        let endRow = currentRow - 1;
+        if(endRow > startRow) {
+            merges.push({s: {r: startRow, c: 0}, e: {r: endRow, c: 0}});   
+            merges.push({s: {r: startRow, c: 9}, e: {r: endRow, c: 9}});   
+            merges.push({s: {r: startRow, c: 10}, e: {r: endRow, c: 10}}); 
+        }
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    if(merges.length > 0) ws['!merges'] = merges;
+    
+    ws['!cols'] = [ {wch:12}, {wch:15}, {wch:15}, {wch:15}, {wch:12}, {wch:10}, {wch:10}, {wch:12}, {wch:12}, {wch:12}, {wch:12} ];
+    
+    XLSX.utils.book_append_sheet(wb, ws, "PackingList");
+    XLSX.writeFile(wb, getPrintFileName() + "-PL.xlsx");
+}
+
+async function exportToPDF() {
   const destInput = document.getElementById('destination'); let isValid = true; let hasProducts = false;
   document.querySelectorAll('.input-warning').forEach(el => el.classList.remove('input-warning'));
   if (!destInput.value.trim()) { destInput.classList.add('input-warning'); showToast('⚠️ 目的地不能为空！', 'error'); destInput.scrollIntoView({ behavior: 'smooth', block: 'center' }); isValid = false; }
-  pallets.forEach(pallet => { let palletHasError = false; pallet.products.forEach((pr) => { hasProducts = true; if (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox) { isValid = false; palletHasError = true; } }); if (palletHasError) pallet.isOpen = true; });
-  if (!hasProducts && isValid) { showToast('⚠️ 没有可打印的数据！', 'error'); isValid = false; }
-  if (!isValid) {
-      renderPalletList(); let firstErrorFound = false;
-      pallets.forEach(pallet => { pallet.products.forEach((pr, pi) => { const wrapper = document.getElementById(`prod-${pallet.id}-${pi}`); if (wrapper) { const inputs = wrapper.querySelectorAll('input'); if (!pr.w) inputs[0].classList.add('input-warning'); if (!pr.h) inputs[1].classList.add('input-warning'); if (!pr.thickness) inputs[2].classList.add('input-warning'); if (!pr.type) inputs[3].classList.add('input-warning'); if (!pr.boxes) inputs[4].classList.add('input-warning'); if (!pr.pcsPerBox) inputs[5].classList.add('input-warning'); if (!firstErrorFound && (!pr.w || !pr.h || !pr.thickness || !pr.type || !pr.boxes || !pr.pcsPerBox)) { wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' }); firstErrorFound = true; } } }); });
-      if (hasProducts) showToast('⚠️ 请补充带红框的必填数据！', 'error'); return; 
-  }
+  pallets.forEach(pallet => { let palletHasError = false; pallet.products.forEach((pr) => { hasProducts = true; if (!pr.w || !pr.h || pr.thickness === "" || !pr.type || !pr.boxes || pr.pcsPerBox === "") { isValid = false; palletHasError = true; } }); if (palletHasError) pallet.isOpen = true; });
+  if (!hasProducts && isValid) { showToast('⚠️ 没有可导出数据的明细！', 'error'); isValid = false; }
+  if (!isValid) { renderPalletList(); showToast('⚠️ 请补充带红框的必填数据！', 'error'); return; }
   
   if (!targetData || (!targetData.pcs && !targetData.sqm)) {
-      if(!confirm("⚠️ 未检测到流程单数据，无法进行智能核对。是否继续强制打印？")) return;
+      if(!confirm("⚠️ 未检测到流程单数据，无法进行智能核对。是否继续强制导出PDF？")) return;
   } else {
      let pcsMatch = (!targetData.pcs || currentTotalPcs === targetData.pcs);
      let sqmMatch = (!targetData.sqm || Math.abs(currentTotalSqm - targetData.sqm) <= 0.1);
@@ -1584,47 +1692,29 @@ function validateAndPrint() {
          let diffPcs = currentTotalPcs - (targetData.pcs || 0);
          let msg = `⚠️ 严重警告：打托数据与流程单严重不符！\n\n`;
          if(!pcsMatch) msg += `[总张数] 相差: ${diffPcs > 0 ? '+'+diffPcs : diffPcs} 张\n`;
-         if(!sqmMatch) msg += `[总平米] 不一致\n`; msg += `\n确认属于特殊情况强制打印？`;
+         if(!sqmMatch) msg += `[总平米] 不一致\n`; msg += `\n确认属于特殊情况强制导出？`;
          if(!confirm(msg)) return; 
      }
   }
-  
-  document.title = getPrintFileName();
-  document.getElementById('marksGrid').innerHTML = allCardsHTML.map(c => c.html).join('');
-  setTimeout(() => { 
-      window.print(); 
-      setTimeout(() => { document.title = ORIGINAL_TITLE; renderPage(); }, 2000); 
-  }, 100);
-}
 
-async function exportToPDF() {
   if (allCardsHTML.length === 0) { showToast('没有任何可导出的数据！', 'error'); return; }
   showToast('正在生成高清 PDF，请稍候...', 'success');
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.style.top = '0';
-  container.style.width = '210mm';
+  container.style.position = 'absolute'; container.style.left = '-9999px'; container.style.top = '0'; container.style.width = '210mm';
   document.body.appendChild(container);
+  
   for (let i = 0; i < allCardsHTML.length; i++) {
       container.innerHTML = allCardsHTML[i].html;
       const cardEl = container.querySelector('.mark-card');
-      cardEl.style.boxShadow = 'none';
-      cardEl.style.border = 'none';
-      cardEl.style.margin = '0';
+      cardEl.style.boxShadow = 'none'; cardEl.style.border = 'none'; cardEl.style.margin = '0';
       const canvas = await html2canvas(cardEl, { scale: 3, useCORS: true, logging: false });
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const isOdd = i % 2 !== 0; 
-      const yPos = isOdd ? 148.5 : 0;
-      if (i > 0 && !isOdd) {
-          pdf.addPage();
-      }
-      
+      const isOdd = i % 2 !== 0; const yPos = isOdd ? 148.5 : 0;
+      if (i > 0 && !isOdd) pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, yPos, 210, 148.5);
   }
-  
   document.body.removeChild(container);
   pdf.save(getPrintFileName() + '.pdf');
   showToast('PDF 导出成功！', 'success');
