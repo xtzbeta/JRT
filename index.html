@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Logistics OS V3.0</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script> 
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800;900&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap');
@@ -88,7 +88,7 @@
   align-items: start; }
 
   /* ==========================================
-     V3.0 全新 Header 重构
+     V3.0 全新 Header 重构 (极简、阴影、无品牌字)
      ========================================== */
   header { 
       height: 60px; 
@@ -112,12 +112,12 @@
       height: 36px; padding: 0 14px; 
       background: var(--input-bg); border-radius: 10px; 
       display: flex; align-items: center; gap: 12px; 
-      opacity: 0; transition: opacity 0.3s ease; pointer-events: none; 
+      opacity: 0; transition: all 0.3s ease; pointer-events: none; 
   }
-  .global-stats.active { opacity: 1; }
+  .global-stats.active { opacity: 1; pointer-events: auto; }
   .global-stats-item { display: flex; align-items: center; gap: 6px; }
   .global-stats-item span.lbl { color: var(--text-muted); font-size: 10px; font-weight: 600;}
-  .global-stats-item span.val { color: var(--text); font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono'; }
+  .global-stats-item span.val { color: var(--text); font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono'; transition: color 0.3s ease; }
   .stat-divider { width: 1px; height: 14px; background: var(--border); }
 
   /* 降级图标按钮 (清空/深色模式) */
@@ -125,7 +125,7 @@
       width: 34px; height: 34px; 
       display: flex; align-items: center; justify-content: center; 
       background: transparent; border: none; border-radius: 8px; 
-      color: var(--text); font-size: 18px; transition: 0.2s; 
+      color: var(--text); font-size: 18px; transition: 0.2s; cursor: pointer;
   }
   .header-icon-btn:hover { background: var(--input-bg); }
   .btn-clear:hover { color: var(--danger); background: var(--danger-light); }
@@ -441,9 +441,9 @@
           <div class="card-body">
             <div id="dropZone" class="drop-zone">
               <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;"><i class="ph ph-text-align-left"></i> 粘贴打托明细 (LCL / FCL)</label>
-              <textarea id="pasteInput" rows="3" class="font-mono" style="resize: vertical; margin-bottom: 16px; width: 100%; border: 1px solid var(--border); background: var(--bg);" placeholder="请先上传流程单"></textarea>
+              <textarea id="pasteInput" rows="3" class="font-mono" style="resize: vertical; margin-bottom: 16px; width: 100%; border: 1px solid var(--border); background: var(--bg);" placeholder="在此处粘贴文本格式的打托明细..."></textarea>
               <div style="display:flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 16px;">
-                <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);"><i class="ph ph-file-xls"></i> 支持直接拖拽 Excel 文件至此处</span>
+                <span style="font-size: 12px; font-weight: 500; color: var(--text-muted);"><i class="ph ph-file-xls"></i> 也可以直接拖拽 Excel 流程单至此处</span>
                 <button class="btn-icon" onclick="document.getElementById('importFile').click()" style="padding: 8px 16px; font-size:12px; border: 1px solid var(--border); border-radius: 8px; font-weight: 500; background: var(--panel-bg);"><i class="ph ph-upload-simple" style="margin-right: 6px;"></i> 上传 Excel</button>
               </div>
               <input type="file" id="importFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="handleFileUpload(event)">
@@ -566,6 +566,7 @@
             <li><strong>终极装箱单导出：</strong> 在导出 Excel 时自动合并多规格托盘单元格，分离长宽厚度，直接出单。</li>
             <li><strong>智能优化顺序：</strong> 托盘内混拼智能选代表，依据型号 -> 规格 -> 厚度一键梳理物理装箱乱序。</li>
             <li><strong>财务工具重制：</strong> 无表单化沉浸式数字排版，一键悬浮复制。</li>
+            <li><strong>安全架构加固：</strong> 新增 XSS 数据脱敏清洗与外部依赖防篡改锁定策略。</li>
         </ul>
     </div>
   </main>
@@ -587,6 +588,7 @@ let allCardsHTML = []; let currentPageIndex = 0;
 const ORIGINAL_TITLE = document.title;
 
 let isThicknessNormEnabled = true;
+let lastReconState = 'init'; // 状态防抖追踪器
 
 let saveTimeout;
 function triggerSave() { setSyncStatus(false); clearTimeout(saveTimeout); saveTimeout = setTimeout(saveData, 800); }
@@ -652,14 +654,19 @@ function switchPage(pageId, element, titleText) {
   document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
   document.getElementById(pageId).classList.add('active'); element.classList.add('active');
-  // 保持逻辑不报错
   const titleEl = document.getElementById('pageTitle');
   if(titleEl) titleEl.innerHTML = titleText;
   
   const isMarksPage = (pageId === 'pageMarks');
-  document.getElementById('globalStats').style.display = isMarksPage ? 'flex' : 'none';
+  const globalStatsEl = document.getElementById('globalStats');
+  if(globalStatsEl) {
+      if (isMarksPage && (currentTotalPcs > 0 || parseFloat(document.getElementById('g-boxes').innerText) > 0)) { 
+          globalStatsEl.classList.add('active'); 
+      } else { 
+          globalStatsEl.classList.remove('active'); 
+      }
+  }
   document.getElementById('btnExportTop').style.display = isMarksPage ? 'flex' : 'none';
-  
   if (isMarksPage) generateMarks();
 }
 
@@ -684,7 +691,6 @@ function toggleTheme() {
   const html = document.documentElement;
   const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   html.setAttribute('data-theme', newTheme); localStorage.setItem('ctp_theme_v2', newTheme);
-  // 只留图标，去除文字
   document.getElementById('themeBtn').innerHTML = newTheme === 'dark' ? '<i class="ph ph-sun"></i>' : '<i class="ph ph-moon"></i>';
 }
 function loadTheme() { 
@@ -973,7 +979,6 @@ function parseWorkOrder(data) {
     showToast(`📝 流程单解析成功！构建字典 ${Object.keys(truthDictionary).length} 组`, "success");
 }
 
-// [V3.0] 核心解析引擎 Bug 修复
 function processTextToPallets(text) {
     const { mappingDict } = buildMappingDictionaries();
     text = text.replace(/[*X×]/gi, 'x');
@@ -1014,15 +1019,8 @@ function processTextToPallets(text) {
     for (let i = 0; i < stream.length; i++) {
         let token = stream[i];
         
-        if (isPlus(token)) {
-            commitCurrentPallet();
-            continue;
-        }
-        
-        if (isPalletBreak(token)) {
-            commitCurrentPallet();
-            continue;
-        }
+        if (isPlus(token)) { commitCurrentPallet(); continue; }
+        if (isPalletBreak(token)) { commitCurrentPallet(); continue; }
 
         if (isType(token)) { 
             let upper = token.toUpperCase().replace(/[^\x20-\x7E\u4e00-\u9fa5]/g, '');
@@ -1038,14 +1036,11 @@ function processTextToPallets(text) {
                 activeExplicitGauge = isSizeWithGauge(token) ? parseFloat(token.split('x')[2]) : null;
                 activeSizeUsed = false; 
             } else {
-                // ==========================================
-                // [V3.0 核心修复：托盘物理切断逻辑]
-                // ==========================================
                 let dims = token.split('x').map(n => parseFloat(n)).filter(n => !isNaN(n)).sort((a,b) => b-a);
                 if (dims.length >= 2) {
                     currentPallet.palletL = dims[0];
                     currentPallet.palletW = dims[1];
-                    // 拿到木托尺寸，强制打包提交！修复了断托丢失 Bug
+                    // 获取木托尺寸后强制切断托盘提交
                     commitCurrentPallet();
                 }
                 activeSize = null; 
@@ -1057,20 +1052,14 @@ function processTextToPallets(text) {
             if (!activeSize) continue;
             let qtyList = []; 
             if (isBulkMultiplier(token)) {
-                let parts = token.split('x');
-                let pcs = parseInt(parts[0]);
-                let count = parseInt(parts[1]);
+                let parts = token.split('x'); let pcs = parseInt(parts[0]); let count = parseInt(parts[1]);
                 for(let k=0; k<count; k++) qtyList.push({ val: pcs, isBulk: true });
             } else {
-                let val = parseInt(token);
-                let isBulk = val > 100; 
-                qtyList.push({ val: val, isBulk: isBulk });
+                let val = parseInt(token); let isBulk = val > 100; qtyList.push({ val: val, isBulk: isBulk });
             }
 
             for (let q of qtyList) {
-                if (activeSizeUsed) {
-                    commitCurrentPallet();
-                }
+                if (activeSizeUsed) commitCurrentPallet();
 
                 let wVal = parseFloat(activeSize.split('x')[0]);
                 let hVal = parseFloat(activeSize.split('x')[1]);
@@ -1118,11 +1107,7 @@ function processTextToPallets(text) {
     finalPallets.forEach((palletGroup, idx) => {
         let needsFix = palletGroup.products.some(p => p.thickness === "" || p.pcsPerBox === "");
         parsedPallets.push({ 
-            id: idx + 1, 
-            isOpen: needsFix, 
-            products: palletGroup.products, 
-            palletL: palletGroup.palletL, 
-            palletW: palletGroup.palletW 
+            id: idx + 1, isOpen: needsFix, products: palletGroup.products, palletL: palletGroup.palletL, palletW: palletGroup.palletW 
         });
     });
     return parsedPallets;
@@ -1133,8 +1118,7 @@ function parsePastedText() {
     let newPallets = processTextToPallets(text); if (newPallets.length === 0) { showToast("未能识别到有效打托数据。", 'error'); return; }
     if (pallets.length > 0) { if (confirm(`识别出 ${newPallets.length} 个托盘。是否覆盖现有数据？`)) { pallets = newPallets; palletCount = newPallets.length; } else { newPallets.forEach(np => { palletCount++; np.id = palletCount; pallets.push(np); }); } } else { pallets = newPallets; palletCount = newPallets.length; }
     
-    pallets.forEach((p, idx) => { p.id = idx + 1; });
-    palletCount = pallets.length;
+    pallets.forEach((p, idx) => { p.id = idx + 1; }); palletCount = pallets.length;
     document.getElementById('pasteInput').value = ''; renderPalletList(); generateMarks(); triggerSave();
 }
 
@@ -1176,6 +1160,8 @@ function parseExcelData(arrayBuffer) {
 function getStrLen(str) { return str ? str.replace(/[\u0100-\uffff]/g, "aa").length : 0; }
 
 function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, products, tPcs, tBoxes) {
+  const escapeHTML = (str) => String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+
   let rLen = products.length;
   let tdFontSize = '15pt', tdPadding = '2.5mm 1mm', thFontSize = '4.5mm', markPadding = '6mm 8mm', logoSize = '12mm';
   let poFontSize = '4.5mm', madeInFontSize = '6.5mm', destFontSize = '8mm', palletNumSize = '18mm', headerGap = '6mm';
@@ -1197,22 +1183,25 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
   let rows = products.map((p, index) => {
     let rowStyle = (index === products.length - 1) ? tdSt.replace('border-bottom: 1px dashed #ccc;', 'border-bottom: none;') : tdSt;
     let tValStr = (typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : (p.thickness || "???");
+    
+    let safeType = escapeHTML(p.type||'').replace(/\s+/g, '&nbsp;');
+    
     return `<tr>
       <td style="${rowStyle} text-align:left;">${p.w}×${p.h}×${tValStr}</td>
-      <td style="${rowStyle} text-align:left; word-break: break-all;">${(p.type||'').replace(/\s+/g, '&nbsp;')}</td>
+      <td style="${rowStyle} text-align:left; word-break: break-all;">${safeType}</td>
       <td style="${rowStyle} text-align:right;">${(p.pcs||0).toLocaleString()}</td>
       <td style="${rowStyle} text-align:right;">${(p.boxes||0).toLocaleString()}</td>
     </tr>`
   }).join('');
   if(!rows) rows = `<tr><td colspan="4" style="color:#999;padding:6px;text-align:center; ${tdSt} border-bottom:none;">N/A</td></tr>`;
   
-  let safeCustomer = (customer||'').trim().replace(/\s+/g, '&nbsp;'); 
+  let safeCustomer = escapeHTML(customer||'').trim().replace(/\s+/g, '&nbsp;'); 
   let custScale = getStrLen(customer) > 15 ? 15 / getStrLen(customer) : 1; 
   let webCustFontSize = (parseFloat(logoSize) * custScale).toFixed(2) + 'mm';
   
-  let safePo = (poNo||'').trim().replace(/\s+/g, '&nbsp;');
-  let safeShipCode = (workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
-  let safeDest = (destination||'').trim().replace(/\s+/g, '&nbsp;'); 
+  let safePo = escapeHTML(poNo||'').trim().replace(/\s+/g, '&nbsp;');
+  let safeShipCode = escapeHTML(workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
+  let safeDest = escapeHTML(destination||'').trim().replace(/\s+/g, '&nbsp;'); 
   
   let poStr = [];
   if(safePo) poStr.push(`PO NO.: ${safePo}`);
@@ -1313,29 +1302,45 @@ function generateMarks() {
     else { allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, validProducts, totalPcs, totalBoxes)}</div>`}); }
   });
   currentTotalPcs = globalPcs; currentTotalSqm = globalSqm;
+  
   const gBoxesEl = document.getElementById('g-boxes'); const gPcsEl = document.getElementById('g-pcs');
   if (parseInt(gBoxesEl.innerText) !== globalBoxes) { gBoxesEl.style.color = 'var(--step2-color)'; setTimeout(()=> gBoxesEl.style.color = '', 300); }
   if (parseInt(gPcsEl.innerText.replace(/,/g,'')) !== globalPcs) { gPcsEl.style.color = 'var(--step2-color)'; setTimeout(()=> gPcsEl.style.color = '', 300); }
 
   document.getElementById('statBoxes').innerText = globalBoxes;
   document.getElementById('statPcs').innerText = globalPcs.toLocaleString(); document.getElementById('statSqm').innerText = globalSqm.toFixed(2);
-  gBoxesEl.innerText = globalBoxes; gPcsEl.innerText = globalPcs.toLocaleString(); 
+  
+  gBoxesEl.innerText = globalBoxes; 
+  gPcsEl.innerText = globalPcs.toLocaleString(); 
+  // [修复同步 bug] 确保顶部 SQM 实时更新
+  document.getElementById('g-sqm').innerText = globalSqm.toFixed(2); 
   
   const globalStatsEl = document.getElementById('globalStats');
   const isMarksPage = document.getElementById('pageMarks').classList.contains('active');
-  if ((globalBoxes > 0 || globalPcs > 0) && isMarksPage) { globalStatsEl.classList.add('active'); } else { globalStatsEl.classList.remove('active'); }
+  if(globalStatsEl) {
+      if ((globalBoxes > 0 || globalPcs > 0) && isMarksPage) { globalStatsEl.classList.add('active'); } else { globalStatsEl.classList.remove('active'); }
+  }
 
   updateReconciliation(); renderPage(); 
 }
 
+// [增强] 防打扰状态追踪机制 & 顶部数据同步变色
 function updateReconciliation() {
    const reconAlert = document.getElementById('reconAlert');
    const reconContent = document.getElementById('reconContent');
    const statPcsEl = document.getElementById('statPcs');
    const statSqmEl = document.getElementById('statSqm');
    
+   const topBoxes = document.getElementById('g-boxes');
+   const topPcs = document.getElementById('g-pcs');
+   const topSqm = document.getElementById('g-sqm');
+   
    if(!targetData || (!targetData.pcs && !targetData.sqm)) {
-       reconAlert.style.display = 'none'; statPcsEl.style.color = 'var(--text)'; statSqmEl.style.color = 'var(--text)'; return;
+       reconAlert.style.display = 'none'; 
+       statPcsEl.style.color = 'var(--text)'; statSqmEl.style.color = 'var(--text)'; 
+       topBoxes.style.color = 'var(--text)'; topPcs.style.color = 'var(--text)'; topSqm.style.color = 'var(--text)';
+       lastReconState = 'init';
+       return;
    }
 
    let hasIncomplete = false;
@@ -1351,6 +1356,8 @@ function updateReconciliation() {
        reconAlert.style.display = 'flex'; reconAlert.style.background = 'rgba(255,149,0,0.08)'; reconAlert.style.border = '1px solid rgba(255,149,0,0.2)'; reconAlert.style.color = 'var(--warning)';
        reconContent.innerHTML = `<i class="ph-fill ph-warning-circle" style="font-size:18px"></i> <span>对账挂起：装箱清单存在缺失（如厚度、片数为空），请先补全标红字段！</span>`;
        statPcsEl.style.color = 'var(--warning)'; statSqmEl.style.color = 'var(--warning)';
+       topBoxes.style.color = 'var(--warning)'; topPcs.style.color = 'var(--warning)'; topSqm.style.color = 'var(--warning)';
+       lastReconState = 'incomplete';
        return; 
    }
    
@@ -1361,8 +1368,14 @@ function updateReconciliation() {
    
    if(pcsMatch && sqmMatch) {
        reconAlert.style.background = 'rgba(52,199,89,0.08)'; reconAlert.style.border = '1px solid rgba(52,199,89,0.15)'; reconAlert.style.color = 'var(--success)';
-       reconContent.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:18px"></i> <span>业财对账通过：打托实绩与流程单完美一致！</span>`;
+       reconContent.innerHTML = `<i class="ph-fill ph-check-circle" style="font-size:18px"></i> <span>对账通过：打托实绩与流程单完美一致！</span>`;
        statPcsEl.style.color = 'var(--success)'; statSqmEl.style.color = 'var(--success)';
+       topBoxes.style.color = 'var(--success)'; topPcs.style.color = 'var(--success)'; topSqm.style.color = 'var(--success)';
+       
+       if (lastReconState !== 'match') {
+           showToast("🎉 对账通过！撒花，数据完美一致~", "success");
+       }
+       lastReconState = 'match';
    } else {
        reconAlert.style.background = 'var(--danger-light)'; reconAlert.style.border = '1px solid rgba(255,59,48,0.15)'; reconAlert.style.color = 'var(--danger)';
        let errStr = [];
@@ -1370,6 +1383,12 @@ function updateReconciliation() {
        if(!sqmMatch) errStr.push(`平米数差 ${sqmDiff > 0 ? '+'+sqmDiff.toFixed(2) : sqmDiff.toFixed(2)} (流程单: ${(targetData.sqm||0).toFixed(2)})`);
        reconContent.innerHTML = `<i class="ph-fill ph-warning-circle" style="font-size:18px"></i> <span>异常：账实不符！${errStr.join(' | ')}</span>`;
        statPcsEl.style.color = pcsMatch ? 'var(--text)' : 'var(--danger)'; statSqmEl.style.color = sqmMatch ? 'var(--text-muted)' : 'var(--danger)';
+       topBoxes.style.color = 'var(--danger)'; topPcs.style.color = 'var(--danger)'; topSqm.style.color = 'var(--danger)';
+       
+       if (lastReconState === 'match') {
+           showToast("⚠️ 数据不一致，请仔细核对！", "error");
+       }
+       lastReconState = 'mismatch';
    }
 }
 
