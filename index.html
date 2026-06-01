@@ -128,7 +128,8 @@
       color: var(--text); font-size: 18px; transition: 0.2s; cursor: pointer;
   }
   .header-icon-btn:hover { background: var(--input-bg); }
-  .btn-clear:hover { color: var(--danger); background: var(--danger-light); }
+  .btn-clear { color: var(--danger); background: var(--danger-light); border: 1px solid rgba(220,38,38,0.2); }
+  .btn-clear:hover { background: rgba(220,38,38,0.14); border-color: rgba(220,38,38,0.4); }
 
   /* 核心操作按钮 */
   .header-action-btn { 
@@ -358,6 +359,7 @@
   .toast.success { background: var(--accent); }
   .toast.warning { background: var(--warning); }
 </style>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </head>
 <body class="sidebar-collapsed print-2-per-page">
 
@@ -572,7 +574,7 @@
   </main>
 
   <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">
-    Created by Mark | OS V3.0 01/06/2026
+    Created by Mark | OS V3.0 01/06/2026 | 本站访问 <span id="busuanzi_value_site_pv"></span> 次
   </div>
 </div>
 
@@ -1013,6 +1015,10 @@ function processTextToPallets(text) {
         if (currentPallet.products.length > 0) {
             finalPallets.push(currentPallet);
             currentPallet = { products: [], palletL: "", palletW: "" };
+        } else {
+            const inheritL = currentPallet.palletL;
+            const inheritW = currentPallet.palletW;
+            currentPallet = { products: [], palletL: inheritL, palletW: inheritW };
         }
     };
 
@@ -1099,6 +1105,19 @@ function processTextToPallets(text) {
     }
 
     commitCurrentPallet();
+
+    // 后处理：向后回填空木托尺寸（修复 A+B 格式中前半托尺寸留空问题）
+    for (let i = 0; i < finalPallets.length; i++) {
+        if (!finalPallets[i].palletL) {
+            for (let j = i + 1; j < finalPallets.length; j++) {
+                if (finalPallets[j].palletL) {
+                    finalPallets[i].palletL = finalPallets[j].palletL;
+                    finalPallets[i].palletW = finalPallets[j].palletW;
+                    break;
+                }
+            }
+        }
+    }
 
     if (hasDictError) showToast("🛑 阻断：部分产品字典未匹配或存在厚度歧义！请在下方红框中手动补全。", "error");
     else if (finalPallets.length > 0) showToast(`📦 解析成功！共 ${finalPallets.length} 托。`, "success");
