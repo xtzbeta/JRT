@@ -1747,11 +1747,12 @@ async function exportToPDF() {
       container.innerHTML = allCardsHTML[i].html;
       const cardEl = container.querySelector('.mark-card');
       cardEl.style.boxShadow = 'none'; cardEl.style.border = 'none'; cardEl.style.margin = '0';
-      const canvas = await html2canvas(cardEl, { scale: 3, useCORS: true, logging: false });
+      const canvas = await html2canvas(cardEl, { scale: 2, useCORS: true, logging: false });
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const isOdd = i % 2 !== 0; const yPos = isOdd ? 148.5 : 0;
       if (i > 0 && !isOdd) pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, yPos, 210, 148.5);
+    await new Promise(resolve => setTimeout(resolve, 10));
   }
   document.body.removeChild(container);
   pdf.save(getPrintFileName() + '.pdf');
