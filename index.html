@@ -87,9 +87,6 @@
   .marks-layout { display: grid; grid-template-columns: 700px 1fr; gap: 32px;
   align-items: start; }
 
-  /* ==========================================
-     V3.0 全新 Header 重构 (极简、阴影、无品牌字)
-     ========================================== */
   header { 
       height: 60px; 
       background: #ffffff; 
@@ -107,7 +104,6 @@
   .header-left { display: flex; align-items: center; gap: 16px; flex: 1; }
   .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   
-  /* 数据胶囊组件 */
   .global-stats { 
       height: 36px; padding: 0 14px; 
       background: var(--input-bg); border-radius: 10px; 
@@ -120,7 +116,6 @@
   .global-stats-item span.val { color: var(--text); font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono'; transition: color 0.3s ease; }
   .stat-divider { width: 1px; height: 14px; background: var(--border); }
 
-  /* 降级图标按钮 (清空/深色模式) */
   .header-icon-btn { 
       width: 34px; height: 34px; 
       display: flex; align-items: center; justify-content: center; 
@@ -131,7 +126,6 @@
   .btn-clear { color: var(--danger); background: var(--danger-light); border: 1px solid rgba(220,38,38,0.2); }
   .btn-clear:hover { background: rgba(220,38,38,0.14); border-color: rgba(220,38,38,0.4); }
 
-  /* 核心操作按钮 */
   .header-action-btn { 
       height: 34px; padding: 0 16px; border-radius: 8px; font-size: 12px; 
       display: flex; align-items: center; gap: 6px; transition: 0.2s; cursor: pointer; 
@@ -149,7 +143,6 @@
   .sync-badge:not(.synced) .sync-dot { background: var(--warning); animation: pulse-warning 1s infinite; }
   .sync-dot { width: 6px; height: 6px; border-radius: 50%; }
   @keyframes pulse-warning { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-  /* ========================================== */
 
   .preview-panel { position: sticky; top: 85px; height: calc(100vh - 105px);
   display: flex; flex-direction: column; border: var(--glass-border); border-radius: var(--radius-outer); background: var(--panel-bg); overflow: hidden;
@@ -187,6 +180,21 @@
   
   .input-warning { border-color: var(--danger) !important;
   box-shadow: 0 0 0 3px var(--danger-light) !important; background: rgba(255,59,48,0.02) !important; }
+
+  /* 新增：模板选择胶囊按钮 (Segmented Control) */
+  .segmented-control {
+      display: flex; background: var(--input-bg); padding: 4px; border-radius: var(--radius-elem);
+      width: 100%; position: relative; border: 1px solid transparent;
+  }
+  .segmented-control input[type="radio"] { display: none; }
+  .segmented-control label {
+      flex: 1; text-align: center; padding: 8px 12px; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; border-radius: 6px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 0; text-transform: none; letter-spacing: 0;
+  }
+  .segmented-control input[type="radio"]:checked + label {
+      background: var(--panel-bg); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  }
 
   .pallet-list { display: flex; flex-direction: column; gap: 24px; }
   .pallet-item { border: none; border-radius: var(--radius-inner); background: transparent; transition: all 0.3s; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.03);
@@ -322,6 +330,9 @@
   .mark-inner { width: 200mm; height: 140mm; border: none; box-sizing: border-box; overflow: hidden; background: #fff; display: flex; flex-direction: column;
   font-family: Arial, sans-serif; }
   
+  /* 新增 A4 卡片样式 */
+  .mark-card.a4-card { height: 297mm; }
+
   @media print {
     @page { size: A4 portrait; margin: 0 !important; }
     body, [data-theme="dark"] { background: white !important; color: black !important; margin: 0 !important;
@@ -340,7 +351,8 @@
     .mark-card { width: 210mm !important; height: 148mm !important; margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; box-shadow: none !important;
     background: transparent !important; display: flex !important; align-items: center !important; justify-content: center !important; break-inside: avoid !important; page-break-inside: avoid !important;
     overflow: hidden !important; box-sizing: border-box !important; }
-    .mark-card:nth-child(2n) { page-break-after: always !important; break-after: page !important;}
+    .mark-card.a4-card { height: 297mm !important; page-break-after: always !important; }
+    .mark-card:nth-child(2n):not(.a4-card) { page-break-after: always !important; break-after: page !important;}
     .mark-card:last-child { page-break-after: auto !important; break-after: auto !important;}
     .mark-inner * { color: #000 !important; border-color: #000 !important; }
   }
@@ -460,12 +472,28 @@
           </div>
           <div class="card-body" id="basicInfoBody" style="display: block;">
             <div class="field-row">
-              <div><label>客户代码 / Customer</label><input type="text" id="customer" class="font-mono" placeholder="选填" oninput="triggerSave()"></div>
-              <div><label>目的地 / Destination <span style="color:var(--danger)">*</span></label><input type="text" id="destination" class="font-mono" placeholder="国家/地区名称 (必填)" oninput="triggerSave()"></div>
+              <div><label>客户代码 / Customer</label><input type="text" id="customer" class="font-mono" placeholder="选填"></div>
+              <div><label>目的地 / Destination <span style="color:var(--danger)">*</span></label><input type="text" id="destination" class="font-mono" placeholder="国家/地区名称 (必填)" oninput="syncFieldToCustom('DESTINATION', this.value); triggerSave();"></div>
             </div>
             <div class="field-row">
-              <div><label>订单号 / PO NO.</label><input type="text" id="poNo" class="font-mono" placeholder="客户订单号/发票号" oninput="triggerSave()"></div>
-              <div><label>发货代码 / SHIPPING CODE</label><input type="text" id="workOrderNo" class="font-mono" placeholder="建议填写" oninput="triggerSave()"></div>
+              <div><label>订单号 / PO NO.</label><input type="text" id="poNo" class="font-mono" placeholder="客户订单号/发票号" oninput="syncFieldToCustom('PO NO.', this.value); triggerSave();"></div>
+              <div><label>发货代码 / SHIPPING CODE</label><input type="text" id="workOrderNo" class="font-mono" placeholder="建议填写"></div>
+            </div>
+            <div class="field-row" style="margin-bottom: 0;">
+              <div>
+                <label>唛头模板 / TEMPLATE</label>
+                <div class="segmented-control">
+                  <input type="radio" id="tpl-half" name="templateType" value="half" onchange="toggleTemplate(); triggerSave();" checked>
+                  <label for="tpl-half">标准半页 (一页两张)</label>
+                  <input type="radio" id="tpl-a4" name="templateType" value="a4" onchange="toggleTemplate(); triggerSave();">
+                  <label for="tpl-a4">A4 全页 (一页一张)</label>
+                </div>
+              </div>
+            </div>
+            <div id="customContentWrapper" style="display: none; margin-top: 20px;">
+              <label>A4 上部自定义内容 / TOP CUSTOM CONTENT</label>
+              <div id="customFieldsList"></div>
+              <button class="btn-add-product" onclick="addCustomField()"><i class="ph ph-plus"></i> 添加自定义字段</button>
             </div>
           </div>
         </div>
@@ -592,6 +620,53 @@ const ORIGINAL_TITLE = document.title;
 let isThicknessNormEnabled = true;
 let lastReconState = 'init'; // 状态防抖追踪器
 
+// ====== 新增：A4 自定义字段数据结构与交互 ======
+let customFields = [];
+const defaultCustomFields = [
+    { k: 'SHIPPER', v: 'HUANGSHAN JINRUITAI TECHNOLOGY CO., LTD.' },
+    { k: 'CONSIGNEE', v: '' },
+    { k: 'COUNTRY OF ORIGIN', v: 'CHINA' },
+    { k: 'PORT OF LOADING', v: 'SHANGHAI' },
+    { k: 'DESTINATION', v: '' },
+    { k: 'PO NO.', v: '' }  // 新增 PO NO. 字段
+];
+
+function renderCustomFields() {
+    const container = document.getElementById('customFieldsList');
+    container.innerHTML = '';
+    customFields.forEach((field, idx) => {
+        container.innerHTML += `
+        <div style="display:flex; gap:12px; margin-bottom:12px; align-items:flex-start;">
+            <input type="text" class="font-mono" style="width: 35%; font-weight:700; background:rgba(0,0,0,0.02);" value="${field.k}" oninput="updateCustomField(${idx}, 'k', this.value)" placeholder="字段名 (如 SHIPPER)">
+            <span style="color:var(--text-muted); padding-top:10px;">:</span>
+            <textarea class="font-mono" style="width: 65%; min-height: 44px; resize: vertical; line-height:1.5;" oninput="updateCustomField(${idx}, 'v', this.value)" placeholder="录入内容...">${field.v}</textarea>
+            <button class="btn-icon" style="margin-top:2px;" onclick="removeCustomField(${idx})"><i class="ph ph-x"></i></button>
+        </div>`;
+    });
+}
+function addCustomField() { customFields.push({k:'', v:''}); renderCustomFields(); triggerSave(); generateMarks(); }
+function removeCustomField(idx) { customFields.splice(idx, 1); renderCustomFields(); triggerSave(); generateMarks(); }
+
+// 核心：处理列表内的输入，并反向同步给步骤3的基础信息
+function updateCustomField(idx, prop, val) { 
+    customFields[idx][prop] = val; 
+    if (prop === 'v') {
+        if (customFields[idx].k === 'DESTINATION') {
+            document.getElementById('destination').value = val;
+            document.getElementById('destination').classList.remove('input-warning');
+        }
+        if (customFields[idx].k === 'PO NO.') document.getElementById('poNo').value = val;
+    }
+    triggerSave(); generateMarks(); 
+}
+
+// 核心：接收步骤3输入框的输入，正向同步给下方的字段列表
+function syncFieldToCustom(keyName, val) {
+    let field = customFields.find(f => f.k === keyName);
+    if (field) { field.v = val; renderCustomFields(); }
+}
+// ===============================================
+
 let saveTimeout;
 function triggerSave() { setSyncStatus(false); clearTimeout(saveTimeout); saveTimeout = setTimeout(saveData, 800); }
 function setSyncStatus(synced) { 
@@ -599,12 +674,22 @@ function setSyncStatus(synced) {
     if (synced) { badge.classList.add('synced'); text.innerText = '已自动同步'; } 
     else { badge.classList.remove('synced'); text.innerText = '等待同步'; } 
 }
+function toggleTemplate() {
+    const typeRadio = document.querySelector('input[name="templateType"]:checked');
+    if(!typeRadio) return;
+    const type = typeRadio.value;
+    const wrap = document.getElementById('customContentWrapper');
+    wrap.style.display = type === 'a4' ? 'block' : 'none';
+    if(typeof generateMarks === 'function') generateMarks();
+}
 function saveData() { 
     const data = { 
         customer: document.getElementById('customer').value, 
         destination: document.getElementById('destination').value, 
         poNo: document.getElementById('poNo').value, 
         workOrderNo: document.getElementById('workOrderNo').value, 
+        templateType: document.querySelector('input[name="templateType"]:checked').value,
+        customFields: customFields,
         pallets: pallets, 
         palletCount: palletCount, 
         targetData: targetData,
@@ -820,7 +905,11 @@ function init() {
   setTimeout(autoScalePreview, 100);
 }
 
-function initSample() { pallets = []; palletCount = 0; addPallet(true); setSyncStatus(false); }
+function initSample() { 
+    pallets = []; palletCount = 0; addPallet(true); setSyncStatus(false);
+    customFields = JSON.parse(JSON.stringify(defaultCustomFields));
+    renderCustomFields();
+}
 
 function loadData() {
   const raw = localStorage.getItem('ctp_logistics_data_v2');
@@ -830,6 +919,15 @@ function loadData() {
       document.getElementById('poNo').value = data.poNo || ''; 
       document.getElementById('workOrderNo').value = data.workOrderNo || ''; 
       document.getElementById('destination').value = data.destination || '';
+      
+      const tpl = data.templateType || 'half';
+      const tplRadio = document.querySelector(`input[name="templateType"][value="${tpl}"]`);
+      if (tplRadio) tplRadio.checked = true;
+      
+      customFields = data.customFields || JSON.parse(JSON.stringify(defaultCustomFields));
+      renderCustomFields();
+      toggleTemplate();
+
       pallets = data.pallets || []; palletCount = data.palletCount || pallets.length; 
       targetData = data.targetData || null; 
       truthDictionary = data.truthDictionary || {};
@@ -974,8 +1072,13 @@ function parseWorkOrder(data) {
         let mappedDest = customerStr.toUpperCase();
         for(let key in countryMap) { if(customerStr.includes(key)) { mappedDest = countryMap[key]; break; } }
         document.getElementById('destination').value = mappedDest;
+        syncFieldToCustom('DESTINATION', mappedDest); 
     }
-    if(poStr) document.getElementById('poNo').value = poStr;
+    if(poStr) {
+        document.getElementById('poNo').value = poStr;
+        syncFieldToCustom('PO NO.', poStr); 
+    }
+    
     targetData = { pcs: targetPcs, sqm: targetSqm, specs: targetSpecs };
     triggerSave(); generateMarks(); 
     showToast(`📝 流程单解析成功！构建字典 ${Object.keys(truthDictionary).length} 组`, "success");
@@ -1046,7 +1149,6 @@ function processTextToPallets(text) {
                 if (dims.length >= 2) {
                     currentPallet.palletL = dims[0];
                     currentPallet.palletW = dims[1];
-                    // 获取木托尺寸后强制切断托盘提交
                     commitCurrentPallet();
                 }
                 activeSize = null; 
@@ -1106,7 +1208,6 @@ function processTextToPallets(text) {
 
     commitCurrentPallet();
 
-    // 后处理：向后回填空木托尺寸（修复 A+B 格式中前半托尺寸留空问题）
     for (let i = 0; i < finalPallets.length; i++) {
         if (!finalPallets[i].palletL) {
             for (let j = i + 1; j < finalPallets.length; j++) {
@@ -1178,23 +1279,23 @@ function parseExcelData(arrayBuffer) {
 
 function getStrLen(str) { return str ? str.replace(/[\u0100-\uffff]/g, "aa").length : 0; }
 
-function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, products, tPcs, tBoxes) {
+function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, products, tPcs, tBoxes, templateType) {
   const escapeHTML = (str) => String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
 
   let rLen = products.length;
-  let tdFontSize = '15pt', tdPadding = '2.5mm 1mm', thFontSize = '4.5mm', markPadding = '6mm 8mm', logoSize = '12mm';
+  let tdFontSize = '15pt', tdPadding = '2.5mm 1mm', thFontSize = '4.5mm', markPadding = '6mm 8mm';
   let poFontSize = '4.5mm', madeInFontSize = '6.5mm', destFontSize = '8mm', palletNumSize = '18mm', headerGap = '6mm';
   if (rLen >= 12) {
       tdFontSize = '9pt'; tdPadding = '0.5mm 1mm'; thFontSize = '3mm'; markPadding = '3mm 5mm'; 
-      logoSize = '7mm'; poFontSize = '3.5mm'; madeInFontSize = '5mm'; destFontSize = '6mm'; palletNumSize = '12mm'; headerGap = '2mm';
+      poFontSize = '3.5mm'; madeInFontSize = '5mm'; destFontSize = '6mm'; palletNumSize = '12mm'; headerGap = '2mm';
   } else if (rLen >= 9) {
       tdFontSize = '10pt'; tdPadding = '1mm 1mm'; thFontSize = '3.5mm'; markPadding = '4mm 6mm'; 
-      logoSize = '8mm'; poFontSize = '3.5mm'; madeInFontSize = '5.5mm'; destFontSize = '6.5mm'; palletNumSize = '14mm'; headerGap = '3mm';
+      poFontSize = '3.5mm'; madeInFontSize = '5.5mm'; destFontSize = '6.5mm'; palletNumSize = '14mm'; headerGap = '3mm';
   } else if (rLen >= 6) {
       tdFontSize = '12pt'; tdPadding = '1.5mm 1mm'; thFontSize = '4mm'; markPadding = '4mm 8mm'; 
-      logoSize = '10mm'; poFontSize = '4mm'; madeInFontSize = '6mm'; destFontSize = '7mm'; palletNumSize = '16mm'; headerGap = '4mm';
+      poFontSize = '4mm'; madeInFontSize = '6mm'; destFontSize = '7mm'; palletNumSize = '16mm'; headerGap = '4mm';
   } else if (rLen >= 4) {
-      tdFontSize = '13pt'; tdPadding = '2mm 1mm'; thFontSize = '4.2mm'; markPadding = '5mm 8mm'; logoSize = '11mm'; headerGap = '5mm';
+      tdFontSize = '13pt'; tdPadding = '2mm 1mm'; thFontSize = '4.2mm'; markPadding = '5mm 8mm'; headerGap = '5mm';
   }
 
   let thSt = `font-family: Arial, sans-serif; font-size:${thFontSize}; font-weight: 900; padding: ${tdPadding}; text-align: left; border-bottom: 1.5px solid #000;`;
@@ -1202,9 +1303,7 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
   let rows = products.map((p, index) => {
     let rowStyle = (index === products.length - 1) ? tdSt.replace('border-bottom: 1px dashed #ccc;', 'border-bottom: none;') : tdSt;
     let tValStr = (typeof p.thickness === 'number' && !isNaN(p.thickness)) ? parseFloat(p.thickness).toFixed(2) : (p.thickness || "???");
-    
     let safeType = escapeHTML(p.type||'').replace(/\s+/g, '&nbsp;');
-    
     return `<tr>
       <td style="${rowStyle} text-align:left;">${p.w}×${p.h}×${tValStr}</td>
       <td style="${rowStyle} text-align:left; word-break: break-all;">${safeType}</td>
@@ -1214,45 +1313,8 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
   }).join('');
   if(!rows) rows = `<tr><td colspan="4" style="color:#999;padding:6px;text-align:center; ${tdSt} border-bottom:none;">N/A</td></tr>`;
   
-  let safeCustomer = escapeHTML(customer||'').trim().replace(/\s+/g, '&nbsp;'); 
-  let custScale = getStrLen(customer) > 15 ? 15 / getStrLen(customer) : 1; 
-  let webCustFontSize = (parseFloat(logoSize) * custScale).toFixed(2) + 'mm';
-  
-  let safePo = escapeHTML(poNo||'').trim().replace(/\s+/g, '&nbsp;');
-  let safeShipCode = escapeHTML(workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
-  let safeDest = escapeHTML(destination||'').trim().replace(/\s+/g, '&nbsp;'); 
-  
-  let poStr = [];
-  if(safePo) poStr.push(`PO NO.: ${safePo}`);
-  if(safeShipCode) poStr.push(`SHIPPING CODE: ${safeShipCode}`);
-  
-  let poHtml = '';
-  if (poStr.length > 0) {
-      poHtml = `<div style="font-size: ${poFontSize}; font-weight: 600; color: #000; font-family: Arial, sans-serif; display: flex; gap: 4mm; margin-top: 1.5mm;"><span>${poStr.join('</span><span style="color:#ccc">|</span><span>')}</span></div>`;
-  }
-
-  return `<div class="mark-inner" style="width: 200mm; height: 140mm; box-sizing: border-box; overflow: hidden; background: #fff; padding: ${markPadding}; display: flex; flex-direction: column; font-family: Arial, sans-serif;">
-      
-      <div class="mark-header" style="display: flex; flex-direction: column; border-bottom: 3px solid #000; padding-bottom: 2mm; margin-bottom: 2mm;">
-          <div class="header-top-row" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: ${headerGap};">
-              <div class="top-left" style="display: flex; flex-direction: column;">
-                  <div class="mark-logo" style="font-size:${webCustFontSize}; font-weight: 900; color: #000; line-height: 1; text-transform: uppercase; letter-spacing: -0.5px;">${safeCustomer}</div>
-                  ${poHtml}
-              </div>
-              <div class="top-right pallet-box-clean" style="border: 2px solid #000; padding: 2mm 4mm; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 32mm;">
-                  <div class="stencil-label" style="font-size: 3.5mm; font-weight: 800; color: #000; margin-bottom: 1mm; text-align: right;">PALLET NO.</div>
-                  <div class="stencil-number" style="font-size: ${palletNumSize}; font-weight: 900; font-family: Arial, monospace; line-height: 1; color: #000; text-align: right;">${pNum}/${pTotal}</div>
-              </div>
-          </div>
-          <div class="header-bottom-row" style="display: flex; justify-content: space-between; align-items: flex-end;">
-              <div class="made-in" style="font-size: ${madeInFontSize}; font-weight: 900; color: #000; line-height: 1;">MADE IN CHINA</div>
-              <div class="dest-wrapper" style="display: flex; align-items: baseline; gap: 2mm;">
-                  <span class="dest-lbl" style="font-size: 3.5mm; font-weight: 800; color: #555;">DESTINATION:</span>
-                  <span class="dest-val" style="font-size: ${destFontSize}; font-weight: 900; color: #000; line-height: 1;">${safeDest}</span>
-              </div>
-          </div>
-      </div>
-
+  // 核心复用组件：纯净的表格数据和页脚汇总区
+  let tableAndFooterContent = `
       <div class="mark-table-wrap" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
           <table class="mark-table" style="width:100%; border-collapse:collapse; margin-bottom: auto;">
               <thead>
@@ -1273,7 +1335,6 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
               </tfoot>
           </table>
       </div>
-
       <div class="mark-footer" style="padding-top:2mm; margin-top:auto; display:flex; justify-content:space-between; align-items:center;">
           <div class="f-totals" style="display:flex; align-items:baseline; gap:6mm;">
               <div style="display:flex; align-items:baseline; gap:1.5mm;"><span class="f-lbl" style="font-size:3.5mm;font-weight:800;color:#555;">TOTAL PCS:</span><span class="f-val" style="font-size:7.5mm;font-weight:900;font-family:Arial, monospace; color: #000;">${tPcs.toLocaleString()}</span></div>
@@ -1281,7 +1342,96 @@ function buildMarkHTML(customer, destination, poNo, workOrderNo, pNum, pTotal, p
           </div>
           <div class="f-note" style="font-size: 3mm; font-weight: 800; color: #000; text-align: right;">STORE IN A DRY, COOL, AND DARK PLACE.</div>
       </div>
-  </div>`;
+  `;
+
+  // 根据模板渲染最终 HTML
+  if (templateType === 'a4') {
+      return `<div class="mark-inner" style="width: 200mm; height: 287mm; box-sizing: border-box; overflow: hidden; background: #fff; padding: ${markPadding}; display: flex; flex-direction: column; font-family: Arial, sans-serif;">
+          
+          <div style="text-align: center; border: 3px solid #000; padding: 3mm 0; margin-bottom: 8mm; background: #fff; width: 100%;">
+              <div style="font-size: 4.5mm; font-weight: 800; color: #000; margin-bottom: 1.5mm; letter-spacing: 1px;">PALLET NO.</div>
+              <div style="font-size: 18mm; font-weight: 900; font-family: Arial, monospace; line-height: 1; color: #000;">${pNum} / ${pTotal}</div>
+          </div>
+
+          <div class="a4-top-wrapper" style="height: 115mm; width: 100%; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
+              <table class="a4-auto-scale" style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; text-align: left;">
+                  <tbody>
+                  ${customFields.map(f => {
+                      if(!f.k && !f.v) return '';
+                      let rightStyle = (f.k === 'SHIPPER') ? "white-space: nowrap;" : "word-break: break-word;";
+                      return `<tr>
+                          <td style="padding: 1.5mm 3mm 1.5mm 0; white-space: nowrap; font-size: 16pt; font-weight: 800; color: #000; vertical-align: top;">${escapeHTML(f.k)}${f.k ? ':' : ''}</td>
+                          <td style="padding: 1.5mm 0; ${rightStyle} font-size: 16pt; font-weight: 500; color: #000; vertical-align: top;">${escapeHTML(f.v).replace(/\n/g, '<br>')}</td>
+                      </tr>`;
+                  }).join('')}
+                  </tbody>
+              </table>
+          </div>
+
+          <div style="height: 125mm; display: flex; flex-direction: column; flex-shrink: 0; border-top: 3px dashed #000; padding-top: 6mm; margin-top: auto;">
+              ${tableAndFooterContent}
+          </div>
+      </div>`;
+  } else {
+      // 标准半页 (复用原有的经典顶部元素)
+      let safeCustomer = escapeHTML(customer||'').trim().replace(/\s+/g, '&nbsp;'); 
+      let custScale = safeCustomer.length > 15 ? 15 / safeCustomer.length : 1; 
+      let webCustFontSize = (4.5 * custScale).toFixed(2) + 'mm';
+      let safePo = escapeHTML(poNo||'').trim().replace(/\s+/g, '&nbsp;');
+      let safeShipCode = escapeHTML(workOrderNo||'').trim().replace(/\s+/g, '&nbsp;');
+      let safeDest = escapeHTML(destination||'').trim().replace(/\s+/g, '&nbsp;'); 
+      
+      let poStr = [];
+      if(safePo) poStr.push(`PO NO.: ${safePo}`);
+      if(safeShipCode) poStr.push(`SHIPPING CODE: ${safeShipCode}`);
+      let poHtml = poStr.length > 0 ? `<div style="font-size: ${poFontSize}; font-weight: 600; color: #000; font-family: Arial, sans-serif; display: flex; gap: 4mm; margin-top: 1.5mm;"><span>${poStr.join('</span><span style="color:#ccc">|</span><span>')}</span></div>` : '';
+
+      return `<div class="mark-inner" style="width: 200mm; height: 140mm; box-sizing: border-box; overflow: hidden; background: #fff; padding: ${markPadding}; display: flex; flex-direction: column; font-family: Arial, sans-serif;">
+          <div class="mark-header" style="display: flex; flex-direction: column; border-bottom: 3px solid #000; padding-bottom: 2mm; margin-bottom: 2mm;">
+              <div class="header-top-row" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: ${headerGap};">
+                  <div class="top-left" style="display: flex; flex-direction: column;">
+                      <div class="mark-logo" style="font-size:${webCustFontSize}; font-weight: 900; color: #000; line-height: 1; text-transform: uppercase; letter-spacing: -0.5px;">${safeCustomer}</div>
+                      ${poHtml}
+                  </div>
+                  <div class="top-right pallet-box-clean" style="border: 2px solid #000; padding: 2mm 4mm; display: flex; flex-direction: column; align-items: flex-end; justify-content: center; min-width: 32mm;">
+                      <div class="stencil-label" style="font-size: 3.5mm; font-weight: 800; color: #000; margin-bottom: 1mm; text-align: right;">PALLET NO.</div>
+                      <div class="stencil-number" style="font-size: ${palletNumSize}; font-weight: 900; font-family: Arial, monospace; line-height: 1; color: #000; text-align: right;">${pNum}/${pTotal}</div>
+                  </div>
+              </div>
+              <div class="header-bottom-row" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                  <div class="made-in" style="font-size: ${madeInFontSize}; font-weight: 900; color: #000; line-height: 1;">MADE IN CHINA</div>
+                  <div class="dest-wrapper" style="display: flex; align-items: baseline; gap: 2mm;">
+                      <span class="dest-lbl" style="font-size: 3.5mm; font-weight: 800; color: #555;">DESTINATION:</span>
+                      <span class="dest-val" style="font-size: ${destFontSize}; font-weight: 900; color: #000; line-height: 1;">${safeDest}</span>
+                  </div>
+              </div>
+          </div>
+          ${tableAndFooterContent}
+      </div>`;
+  }
+}
+
+function scaleA4Text(containerEl) {
+    if(!containerEl) return;
+    containerEl.querySelectorAll('.a4-top-wrapper').forEach(wrapper => {
+        const tableEl = wrapper.querySelector('.a4-auto-scale');
+        if(!tableEl) return;
+        let fontSizePt = 16.0; // 起始字号：16pt (三号字体)
+        
+        const applySize = (size) => {
+            tableEl.querySelectorAll('td').forEach(td => {
+                td.style.fontSize = size + 'pt';
+            });
+        };
+        
+        applySize(fontSizePt);
+        
+        // 双重保险：当表格高度超过限高 (115mm)，或者宽度因为单行保护而溢出时，全局按比例微缩
+        while ((tableEl.scrollHeight > wrapper.clientHeight || tableEl.scrollWidth > wrapper.clientWidth) && fontSizePt > 8.0) {
+            fontSizePt -= 0.5;
+            applySize(fontSizePt);
+        }
+    });
 }
 
 function renderPage() { 
@@ -1297,6 +1447,9 @@ function renderPage() {
     grid.innerHTML = allCardsHTML[currentPageIndex].html; 
     pageInput.value = currentPageIndex + 1;
     totalPagesSpan.innerText = allCardsHTML.length; 
+    
+    // 渲染完成后，触发 A4 上半部字体自动缩放
+    scaleA4Text(grid);
 }
 
 function prevPage() { if(currentPageIndex > 0) { currentPageIndex--; renderPage(); } }
@@ -1307,6 +1460,10 @@ function generateMarks() {
   allCardsHTML = []; 
   const customer = document.getElementById('customer').value.toUpperCase() || ''; const poNo = document.getElementById('poNo').value.toUpperCase() || '';
   const workOrderNo = document.getElementById('workOrderNo').value.toUpperCase() || ''; const destination = document.getElementById('destination').value.toUpperCase() || '';
+  
+  const templateRadio = document.querySelector('input[name="templateType"]:checked');
+  const template = templateRadio ? templateRadio.value : 'half';
+  
   const total = pallets.length;
   let globalBoxes = 0; let globalPcs = 0; let globalSqm = 0;
 
@@ -1317,8 +1474,8 @@ function generateMarks() {
     
     validProducts.forEach(p => { globalBoxes += parseFloat(p.boxes) || 0; globalPcs += parseFloat(p.pcs) || 0; globalSqm += ((parseFloat(p.w) || 0) / 1000) * ((parseFloat(p.h) || 0) / 1000) * (parseFloat(p.pcs) || 0); });
 
-    if (validProducts.length === 0) { allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, [], 0, 0)}</div>`}); } 
-    else { allCardsHTML.push({id: pallet.id, html: `<div class="mark-card">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, validProducts, totalPcs, totalBoxes)}</div>`}); }
+    if (validProducts.length === 0) { allCardsHTML.push({id: pallet.id, html: `<div class="mark-card ${template === 'a4' ? 'a4-card' : ''}">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, [], 0, 0, template)}</div>`}); } 
+    else { allCardsHTML.push({id: pallet.id, html: `<div class="mark-card ${template === 'a4' ? 'a4-card' : ''}">${buildMarkHTML(customer, destination, poNo, workOrderNo, idx + 1, total, validProducts, totalPcs, totalBoxes, template)}</div>`}); }
   });
   currentTotalPcs = globalPcs; currentTotalSqm = globalSqm;
   
@@ -1331,7 +1488,6 @@ function generateMarks() {
   
   gBoxesEl.innerText = globalBoxes; 
   gPcsEl.innerText = globalPcs.toLocaleString(); 
-  // [修复同步 bug] 确保顶部 SQM 实时更新
   document.getElementById('g-sqm').innerText = globalSqm.toFixed(2); 
   
   const globalStatsEl = document.getElementById('globalStats');
@@ -1343,7 +1499,6 @@ function generateMarks() {
   updateReconciliation(); renderPage(); 
 }
 
-// [增强] 防打扰状态追踪机制 & 顶部数据同步变色
 function updateReconciliation() {
    const reconAlert = document.getElementById('reconAlert');
    const reconContent = document.getElementById('reconContent');
@@ -1391,7 +1546,7 @@ function updateReconciliation() {
        statPcsEl.style.color = 'var(--success)'; statSqmEl.style.color = 'var(--success)';
        topBoxes.style.color = 'var(--success)'; topPcs.style.color = 'var(--success)'; topSqm.style.color = 'var(--success)';
        
-       if (lastReconState !== 'match') {
+       if (lastReconState === 'mismatch' || lastReconState === 'incomplete') {
            showToast("🎉 对账通过！撒花，数据完美一致~", "success");
        }
        lastReconState = 'match';
@@ -1743,15 +1898,28 @@ async function exportToPDF() {
   container.style.position = 'absolute'; container.style.left = '-9999px'; container.style.top = '0'; container.style.width = '210mm';
   document.body.appendChild(container);
   
+  const templateRadio = document.querySelector('input[name="templateType"]:checked');
+  const templateType = templateRadio ? templateRadio.value : 'half';
+  const isA4 = templateType === 'a4';
+
   for (let i = 0; i < allCardsHTML.length; i++) {
       container.innerHTML = allCardsHTML[i].html;
       const cardEl = container.querySelector('.mark-card');
       cardEl.style.boxShadow = 'none'; cardEl.style.border = 'none'; cardEl.style.margin = '0';
+      
+      if (isA4) scaleA4Text(container);
+
       const canvas = await html2canvas(cardEl, { scale: 2, useCORS: true, logging: false });
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const isOdd = i % 2 !== 0; const yPos = isOdd ? 148.5 : 0;
-      if (i > 0 && !isOdd) pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, yPos, 210, 148.5);
+      
+      if (isA4) {
+          if (i > 0) pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+      } else {
+          const isOdd = i % 2 !== 0; const yPos = isOdd ? 148.5 : 0;
+          if (i > 0 && !isOdd) pdf.addPage();
+          pdf.addImage(imgData, 'JPEG', 0, yPos, 210, 148.5);
+      }
     await new Promise(resolve => setTimeout(resolve, 10));
   }
   document.body.removeChild(container);
