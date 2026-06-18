@@ -867,7 +867,7 @@ function toggleMappingPanel() {
 }
 
 let dynamicTypeMapping = [];
-const defaultTypeMapping = [{ code: '300-3', name: 'CTCP' }, { code: '300-SL', name: 'CTCP-DL' }, { code: '300-S', name: 'CTCP' }, { code: '200-SG', name: 'CTP' }, { code: '200-S', name: 'CTP' }, { code: 'JRT-M', name: 'DOP' }];
+const defaultTypeMapping = [{ code: '300-3', name: 'CTCP' }, { code: '300-SL', name: 'CTCP-DL' }, { code: '300-S', name: 'CTCP' }, { code: '200-SG', name: 'CTP' }, { code: '200-S', name: 'CTP S' }, { code: 'JRT-M', name: 'DOP' }];
 function loadTypeMapping() { 
     const saved = localStorage.getItem('ctp_type_mapping_v2');
     if (saved) { 
@@ -1944,7 +1944,12 @@ async function exportToPDF() {
   pdf.save(getPrintFileName() + '.pdf');
   showToast('PDF 导出成功！', 'success');
 }
+// [手术刀式新增]：监听网页刷新或关闭事件，自动清空上传的单据缓存（保留步骤1的字典配置）
+window.addEventListener('beforeunload', () => {
+    localStorage.removeItem('ctp_logistics_data_v2');
+});
 
+window.onload = () => { init(); };
 window.onload = () => { init(); };
 </script>
 </body>
