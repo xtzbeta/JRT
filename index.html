@@ -1082,11 +1082,22 @@ function parseWorkOrder(data) {
    targetData = { pcs: targetPcs, sqm: targetSqm, specs: targetSpecs };
     triggerSave(); generateMarks(); 
     
-    // [手术刀式修改]：增加对空字典的错误拦截
-    let dictCount = Object.keys(truthDictionary).length;
+ let dictCount = Object.keys(truthDictionary).length;
+    
     if (dictCount === 0) {
+        // 【拦截】：解析失败时，不仅要报错，还要中止保存，保护原有数据不被覆盖
         showToast("⚠️ 流程单格式不规范，无法正确识别数据！", "error");
+        
+        // 强制修改右上角同步状态徽章
+        const badge = document.getElementById('saveStatus'); 
+        const text = document.getElementById('saveStatusText');
+        badge.classList.remove('synced'); 
+        text.innerText = '解析失败，未保存';
     } else {
+        // 只有解析成功时，才执行数据覆盖和自动保存
+        targetData = { pcs: targetPcs, sqm: targetSqm, specs: targetSpecs };
+        triggerSave(); 
+        generateMarks(); 
         showToast(`📝 流程单解析成功！构建字典 ${dictCount} 组`, "success");
     }
 }
