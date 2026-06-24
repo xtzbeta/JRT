@@ -211,7 +211,9 @@
   .pallet-body { max-height: 0;
   opacity: 0; padding: 0 20px; overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease; }
   .pallet-item.open .pallet-body { max-height: 5000px; opacity: 1; padding: 24px 20px; }
-
+  .pallet-item.dragging { opacity: 0.4; border: 1px dashed var(--accent) !important; transform: scale(0.99); z-index: 10; position: relative; }
+  .pallet-item.drag-over-top { border-top: 2px solid var(--accent) !important; }
+  .pallet-item.drag-over-bottom { border-bottom: 2px solid var(--accent) !important; }
   .product-row-single { 
     padding: 10px 0;
     border-bottom: 1px dashed var(--border); margin-bottom: 10px; 
@@ -602,7 +604,7 @@
   </main>
 
   <div class="app-footer" style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 24px; font-weight: 500; letter-spacing: 0.5px;">
-    Created by Mark | OS V3.0 18/06/2026 | 本站访问 <span id="busuanzi_value_site_pv"></span> 次
+    Created by Mark | OS V3.0 24/06/2026 | 本站访问 <span id="busuanzi_value_site_pv"></span> 次
   </div>
 </div>
 
@@ -615,6 +617,7 @@
 let pallets = []; let palletCount = 0; let currentTotalPcs = 0; let currentTotalSqm = 0; 
 let targetData = null; let truthDictionary = {}; 
 let allCardsHTML = []; let currentPageIndex = 0; 
+let draggedPalletIndex = null;
 const ORIGINAL_TITLE = document.title;
 
 let isThicknessNormEnabled = true;
@@ -1624,7 +1627,53 @@ function renderPalletList() {
       </div>
     `;
 
-    div.innerHTML = `<div class="pallet-header" onclick="togglePallet(${pallet.id})"><span style="display:flex;align-items:center; width:75%; overflow:hidden;"><span class="pallet-badge">${idx+1}/${pallets.length}</span><span class="pallet-summary">${summary || '待输入明细...'}</span></span><div class="pallet-actions"><button class="btn-remove-pallet" onclick="removePallet(${pallet.id},event)" title="删除托盘"><i class="ph ph-trash"></i></button></div></div><div class="pallet-body" id="pallet-body-${pallet.id}">${palletPropHTML}${headerHTML}<div id="products-${pallet.id}">${pallet.products.map((p,pi) => renderProductRow(pallet.id, pi, p)).join('')}</div><button class="btn-add-product" onclick="addProduct(${pallet.id})"><i class="ph ph-plus"></i> 增加规格明细</button></div>`;
+    div.innerHTML = `<div class="pallet-header" onclick="togglePallet(${pallet.id})"><span style="display:flex;align-items:center; width:75%; overflow:hidden;"><span class="pallet-badge">${idx+1}/${pallets.length}</span><span class="pallet-summary">${summary || '待输入明细...'}</span></span><div class="pallet-actions" style="display:flex; align-items:center;"><span class="drag-handle" style="cursor: grab; padding: 6px; font-size: 18px; color: var(--text-muted); display:flex; align-items:center; justify-content:center;" onclick="event.stopPropagation()" onmouseenter="this.closest('.pallet-item').draggable = true" onmouseleave="this.closest('.pallet-item').draggable = false" title="拖拽排序"><i class="ph ph-dots-six-vertical"></i></span><button class="btn-remove-pallet" onclick="removePallet(${pallet.id},event)" title="删除托盘"><i class="ph ph-trash"></i></button></div></div><div class="pallet-body" id="pallet-body-${pallet.id}">${palletPropHTML}${headerHTML}<div id="products-${pallet.id}">${pallet.products.map((p,pi) => renderProductRow(pallet.id, pi, p)).join('')}</div><button class="btn-add-product" onclick="addProduct(${pallet.id})"><i class="ph ph-plus"></i> 增加规格明细</button></div>`;
+    
+    // HTML5 Native Drag & Drop Listeners
+    div.ondragstart = (e) => { 
+        draggedPalletIndex = idx; 
+        e.dataTransfer.effectAllowed = 'move'; 
+        e.dataTransfer.setData('text/plain', idx); 
+        setTimeout(() => div.classList.add('dragging'), 0); 
+    };
+    div.ondragend = (e) => { 
+        div.classList.remove('dragging'); 
+        div.draggable = false; 
+        document.querySelectorAll('.pallet-item').forEach(el => el.classList.remove('drag-over-top', 'drag-over-bottom')); 
+    };
+    div.ondragover = (e) => { 
+        e.preventDefault(); 
+        e.dataTransfer.dropEffect = 'move'; 
+        const bounding = div.getBoundingClientRect(); 
+        const offset = bounding.y + (bounding.height / 2); 
+        if (e.clientY - offset > 0) { 
+            div.classList.add('drag-over-bottom'); div.classList.remove('drag-over-top'); 
+        } else { 
+            div.classList.add('drag-over-top'); div.classList.remove('drag-over-bottom'); 
+        } 
+    };
+    div.ondragleave = (e) => { div.classList.remove('drag-over-top', 'drag-over-bottom'); };
+    div.ondrop = (e) => {
+        e.preventDefault(); 
+        div.classList.remove('drag-over-top', 'drag-over-bottom');
+        if (draggedPalletIndex === null || draggedPalletIndex === idx) return;
+        
+        // Calculate dynamic insertion index based on hover position (top/bottom)
+        const bounding = div.getBoundingClientRect(); 
+        const offset = bounding.y + (bounding.height / 2);
+        let dropIndex = (e.clientY - offset > 0) ? idx + 1 : idx;
+        if (draggedPalletIndex < dropIndex) dropIndex--;
+        
+        // Reorder engine
+        const draggedItem = pallets.splice(draggedPalletIndex, 1)[0];
+        pallets.splice(dropIndex, 0, draggedItem);
+        pallets.forEach((p, i) => p.id = i + 1);
+        
+        renderPalletList(); 
+        generateMarks(); 
+        triggerSave();
+    };
+
     container.appendChild(div);
   });
 }
