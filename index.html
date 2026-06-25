@@ -1841,12 +1841,21 @@ function convertRMB() {
   const fixed   = num.toFixed(2); const [intStr, decStr] = fixed.split('.');
   const intNum  = parseInt(intStr, 10); const jiao = parseInt(decStr[0], 10); const fen = parseInt(decStr[1], 10);
   
-  function intToZH(n) {
-    if (n === 0) return '零'; let result = ''; const s = String(n); const len = s.length;
+function intToZH(n) {
+    if (n === 0) return '零'; 
+    let result = ''; const s = String(n); const len = s.length;
+    let zeroCount = 0;
     for (let i = 0; i < len; i++) {
-      const d = parseInt(s[i], 10); const pos = len - 1 - i; const unit = INT_UNIT[pos];
-      if (d === 0) { const remaining = s.slice(i + 1); const hasMore = /[1-9]/.test(remaining); if (hasMore && !result.endsWith('零')) result += '零'; } 
-      else { result += DIGITS[d] + unit; }
+      const d = parseInt(s[i], 10); const pos = len - 1 - i;
+      if (d === 0) {
+        zeroCount++;
+      } else {
+        if (zeroCount > 0) { result += '零'; zeroCount = 0; }
+        result += DIGITS[d] + INT_UNIT[pos];
+      }
+      // 强制在段落边界（万、亿）追加单位，前提是该段内有非零数字
+      if (pos === 4 && zeroCount < 4) { result += '万'; }
+      if (pos === 8 && zeroCount < 4) { result += '亿'; }
     }
     return result;
   }
